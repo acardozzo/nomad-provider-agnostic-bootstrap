@@ -4,4 +4,5 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 "$ROOT_DIR/bin/render-inventory"
+ansible-playbook "$ROOT_DIR/ansible/playbooks/secrets.yml"
 ansible-playbook -i "$ROOT_DIR/ansible/inventory/hosts.ini" "$ROOT_DIR/ansible/playbooks/bootstrap.yml"
