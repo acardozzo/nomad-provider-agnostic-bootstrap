@@ -19,6 +19,22 @@ client {
     path      = "{{ backup_local_dir | default('/var/backups/consul') }}"
     read_only = false
   }
+
+  host_volume "prometheus_data" {
+    path      = "{{ prometheus_data_dir | default('/var/lib/prometheus') }}"
+    read_only = false
+  }
+
+  host_volume "grafana_data" {
+    path      = "{{ grafana_data_dir | default('/var/lib/grafana') }}"
+    read_only = false
+  }
+}
+
+telemetry {
+  prometheus_metrics         = true
+  publish_allocation_metrics = true
+  publish_node_metrics       = true
 }
 
 acl {

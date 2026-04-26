@@ -1,0 +1,104 @@
+job "prometheus" {
+  datacenters = ["{{ nomad_datacenter }}"]
+  type        = "service"
+
+  group "prometheus" {
+    count = 1
+
+    constraint {
+      attribute = "${node.class}"
+      operator  = "="
+      value     = "client"
+    }
+
+    network {
+      mode = "host"
+
+      port "http" {
+        static = 9090
+      }
+    }
+
+    volume "data" {
+      type      = "host"
+      source    = "prometheus_data"
+      read_only = false
+    }
+
+    service {
+      name = "prometheus"
+      port = "http"
+
+      check {
+        type     = "http"
+        path     = "/-/healthy"
+        interval = "10s"
+        timeout  = "2s"
+      }
+    }
+
+    task "prometheus" {
+      driver = "docker"
+
+      volume_mount {
+        volume      = "data"
+        destination = "/prometheus"
+        read_only   = false
+      }
+
+      template {
+        destination = "local/prometheus.yml"
+        change_mode = "restart"
+        data = <<EOH
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'consul-services'
+    consul_sd_configs:
+      - server: '127.0.0.1:8500'
+        token: '{{ consul_bootstrap_token }}'
+    relabel_configs:
+      - source_labels: [__meta_consul_service]
+        target_label: service
+      - source_labels: [__meta_consul_node]
+        target_label: node
+
+  - job_name: 'nomad-clients'
+    metrics_path: /v1/metrics
+    params:
+      format: ['prometheus']
+    static_configs:
+      - targets: [{% for host in groups['clients'] %}'{{ hostvars[host].private_ip | default(hostvars[host].ansible_host) }}:4646'{% if not loop.last %}, {% endif %}{% endfor %}]
+
+  - job_name: 'nomad-servers'
+    metrics_path: /v1/metrics
+    params:
+      format: ['prometheus']
+    static_configs:
+      - targets: [{% for host in groups['servers'] %}'{{ hostvars[host].private_ip | default(hostvars[host].ansible_host) }}:4646'{% if not loop.last %}, {% endif %}{% endfor %}]
+EOH
+      }
+
+      config {
+        image        = "{{ prometheus_image }}"
+        network_mode = "host"
+        args = [
+          "--config.file=/local/prometheus.yml",
+          "--storage.tsdb.path=/prometheus",
+          "--storage.tsdb.retention.time=30d",
+          "--web.enable-lifecycle"
+        ]
+        volumes = [
+          "local/prometheus.yml:/local/prometheus.yml"
+        ]
+      }
+
+      resources {
+        cpu    = 300
+        memory = 512
+      }
+    }
+  }
+}

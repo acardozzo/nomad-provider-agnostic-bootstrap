@@ -25,3 +25,9 @@
   become: true
   roles:
     - backups
+
+- name: Deploy monitoring stack
+  hosts: servers[0]
+  become: true
+  roles:
+    - monitoring
