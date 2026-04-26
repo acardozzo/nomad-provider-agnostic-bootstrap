@@ -18,6 +18,8 @@ This checklist tracks what is already automated in the bootstrap and what still 
 - [x] Traefik deployment as a Nomad job
 - [x] Sample app deployment behind Traefik
 - [x] One-command flow shape with `bin/apply`, `bin/bootstrap`, and `bin/destroy`
+- [x] Consul ACL bootstrap
+- [x] Nomad ACL bootstrap
 
 ## Partially Automated
 
@@ -32,10 +34,6 @@ This checklist tracks what is already automated in the bootstrap and what still 
 [ ] DNS records
 
 [ ] Let's Encrypt / ACME certificates
-
-[ ] Nomad ACL bootstrap
-
-[ ] Consul ACL bootstrap
 
 [ ] Vault integration
 
