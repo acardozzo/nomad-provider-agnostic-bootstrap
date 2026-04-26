@@ -11,6 +11,10 @@ client {
   }
 }
 
+acl {
+  enabled = true
+}
+
 plugin "docker" {
   config {
     allow_privileged = true
@@ -25,4 +29,7 @@ advertise {
 
 consul {
   address = "127.0.0.1:8500"
+  {% if consul_bootstrap_token %}
+  token   = "{{ consul_bootstrap_token }}"
+  {% endif %}
 }
