@@ -1,0 +1,56 @@
+job "consul-snapshot" {
+  datacenters = ["{{ nomad_datacenter }}"]
+  type        = "batch"
+
+  periodic {
+    cron             = "{{ backup_cron }}"
+    prohibit_overlap = true
+    time_zone        = "UTC"
+  }
+
+  group "snapshot" {
+    count = 1
+
+    constraint {
+      attribute = "${node.class}"
+      operator  = "="
+      value     = "client"
+    }
+
+    volume "backups" {
+      type      = "host"
+      source    = "consul_backups"
+      read_only = false
+    }
+
+    task "snapshot" {
+      driver = "docker"
+
+      volume_mount {
+        volume      = "backups"
+        destination = "/backups"
+        read_only   = false
+      }
+
+      env {
+        CONSUL_HTTP_ADDR  = "http://127.0.0.1:8500"
+        CONSUL_HTTP_TOKEN = "{{ consul_bootstrap_token }}"
+        BACKUP_RETAIN     = "{{ backup_retain }}"
+      }
+
+      config {
+        image        = "hashicorp/consul:1.20"
+        network_mode = "host"
+        entrypoint   = ["/bin/sh", "-c"]
+        args = [
+          "set -e; ts=$(date -u +%Y%m%dT%H%M%SZ); consul snapshot save /backups/consul-$ts.snap; ls -1t /backups/consul-*.snap | tail -n +$((BACKUP_RETAIN+1)) | xargs -r rm -f; echo done"
+        ]
+      }
+
+      resources {
+        cpu    = 100
+        memory = 128
+      }
+    }
+  }
+}

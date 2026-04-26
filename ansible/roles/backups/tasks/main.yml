@@ -1,0 +1,34 @@
+---
+- name: Ensure Nomad jobs directory exists
+  ansible.builtin.file:
+    path: /opt/nomad/jobs
+    state: directory
+    owner: nomad
+    group: nomad
+    mode: "0755"
+
+- name: Create local backup directory on clients (volume backing dir)
+  ansible.builtin.file:
+    path: "{{ backup_local_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+  delegate_to: "{{ item }}"
+  loop: "{{ groups['clients'] }}"
+  run_once: true
+
+- name: Render consul snapshot periodic Nomad job
+  ansible.builtin.template:
+    src: consul-snapshot.nomad.hcl.j2
+    dest: /opt/nomad/jobs/consul-snapshot.nomad.hcl
+    owner: nomad
+    group: nomad
+    mode: "0644"
+
+- name: Submit consul snapshot job
+  ansible.builtin.command: nomad job run /opt/nomad/jobs/consul-snapshot.nomad.hcl
+  environment:
+    NOMAD_TOKEN: "{{ nomad_bootstrap_token }}"
+  register: snap_job
+  changed_when: "'job registration successful' in snap_job.stdout.lower() or 'previously registered' in snap_job.stdout.lower()"

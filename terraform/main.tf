@@ -30,6 +30,7 @@ module "linode" {
   client_instance_type = var.client_instance_type
   image                = var.image
   ssh_public_key       = var.ssh_public_key
+  vpc_cidr             = var.vpc_cidr
   cluster_tags         = local.cluster_tags
 }
 

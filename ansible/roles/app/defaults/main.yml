@@ -1,0 +1,13 @@
+---
+app_count: 2
+app_path_prefix: ""
+app_container_port: 8080
+app_cpu: 200
+app_memory: 128
+app_health_path: "/"
+app_env: {}
+app_tls: true
+app_autoscale: false
+app_min_count: 1
+app_max_count: 10
+app_target_cpu: 70

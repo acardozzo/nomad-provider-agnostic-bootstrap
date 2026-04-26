@@ -2,6 +2,17 @@ job "traefik" {
   datacenters = ["{{ nomad_datacenter }}"]
   type        = "service"
 
+  update {
+    max_parallel      = 1
+    health_check      = "checks"
+    min_healthy_time  = "10s"
+    healthy_deadline  = "5m"
+    progress_deadline = "10m"
+    auto_revert       = true
+    auto_promote      = true
+    canary            = 1
+  }
+
   group "ingress" {
     count = 1
 
@@ -32,6 +43,13 @@ job "traefik" {
     service {
       name = "traefik"
       port = "https"
+
+      check {
+        type     = "tcp"
+        port     = "https"
+        interval = "10s"
+        timeout  = "2s"
+      }
 
       tags = [
         "traefik.enable=true",

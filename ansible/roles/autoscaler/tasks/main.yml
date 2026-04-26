@@ -1,0 +1,23 @@
+---
+- name: Ensure Nomad jobs directory exists
+  ansible.builtin.file:
+    path: /opt/nomad/jobs
+    state: directory
+    owner: nomad
+    group: nomad
+    mode: "0755"
+
+- name: Render nomad-autoscaler job
+  ansible.builtin.template:
+    src: nomad-autoscaler.nomad.hcl.j2
+    dest: /opt/nomad/jobs/nomad-autoscaler.nomad.hcl
+    owner: nomad
+    group: nomad
+    mode: "0644"
+
+- name: Submit nomad-autoscaler job
+  ansible.builtin.command: nomad job run /opt/nomad/jobs/nomad-autoscaler.nomad.hcl
+  environment:
+    NOMAD_TOKEN: "{{ nomad_bootstrap_token }}"
+  register: as_job
+  changed_when: "'job registration successful' in as_job.stdout.lower() or 'previously registered' in as_job.stdout.lower()"

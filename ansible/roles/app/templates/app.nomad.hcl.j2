@@ -1,0 +1,98 @@
+job "{{ app_name }}" {
+  datacenters = ["{{ nomad_datacenter }}"]
+  type        = "service"
+
+  update {
+    max_parallel      = 1
+    health_check      = "checks"
+    min_healthy_time  = "10s"
+    healthy_deadline  = "3m"
+    progress_deadline = "5m"
+    auto_revert       = true
+    auto_promote      = true
+    canary            = 1
+  }
+
+  group "web" {
+    count = {{ app_count }}
+
+{% if app_autoscale %}
+    scaling {
+      enabled = true
+      min     = {{ app_min_count }}
+      max     = {{ app_max_count }}
+
+      policy {
+        cooldown            = "1m"
+        evaluation_interval = "30s"
+
+        check "cpu" {
+          source = "prometheus"
+          query  = "avg(rate(nomad_client_allocs_cpu_total_percent{exported_job=\"{{ app_name }}\"}[1m]))"
+
+          strategy "target-value" {
+            target = {{ app_target_cpu }}
+          }
+        }
+      }
+    }
+{% endif %}
+
+    network {
+      port "http" {
+        to = {{ app_container_port }}
+      }
+    }
+
+    service {
+      name = "{{ app_name }}"
+      port = "http"
+
+      check {
+        type     = "http"
+        path     = "{{ app_health_path }}"
+        interval = "10s"
+        timeout  = "2s"
+      }
+
+      tags = [
+        "traefik.enable=true",
+{% set entrypoints = "websecure" if app_tls else "web" %}
+{% if app_path_prefix %}
+        "traefik.http.routers.{{ app_name }}.rule=Host(`{{ app_host }}`) && PathPrefix(`{{ app_path_prefix }}`)",
+        "traefik.http.routers.{{ app_name }}.middlewares={{ app_name }}-strip@consulcatalog",
+        "traefik.http.middlewares.{{ app_name }}-strip.stripprefix.prefixes={{ app_path_prefix }}",
+{% else %}
+        "traefik.http.routers.{{ app_name }}.rule=Host(`{{ app_host }}`)",
+{% endif %}
+        "traefik.http.routers.{{ app_name }}.entrypoints={{ entrypoints }}",
+{% if app_tls %}
+        "traefik.http.routers.{{ app_name }}.tls=true",
+        "traefik.http.routers.{{ app_name }}.tls.certresolver=le",
+{% endif %}
+      ]
+    }
+
+    task "{{ app_name }}" {
+      driver = "docker"
+
+      config {
+        image = "{{ app_image }}"
+        ports = ["http"]
+      }
+
+{% if app_env %}
+      env {
+{% for k, v in app_env.items() %}
+        {{ k }} = "{{ v }}"
+{% endfor %}
+      }
+{% endif %}
+
+      resources {
+        cpu    = {{ app_cpu }}
+        memory = {{ app_memory }}
+      }
+    }
+  }
+}

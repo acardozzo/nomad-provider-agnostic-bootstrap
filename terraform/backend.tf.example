@@ -1,0 +1,26 @@
+# Remote state backend.
+#
+# Default is S3-compatible (works with AWS S3, Vultr Object Storage,
+# Linode Object Storage, MinIO, Cloudflare R2). Configure it via -backend-config
+# at init time so credentials are not committed:
+#
+#   terraform init \
+#     -backend-config="bucket=$TF_BUCKET" \
+#     -backend-config="key=nomad-cluster/terraform.tfstate" \
+#     -backend-config="region=$TF_REGION" \
+#     -backend-config="endpoint=$TF_ENDPOINT" \
+#     -backend-config="access_key=$TF_ACCESS_KEY" \
+#     -backend-config="secret_key=$TF_SECRET_KEY"
+#
+# Comment this block out for local-only state.
+
+terraform {
+  backend "s3" {
+    # Values are supplied at init time via -backend-config.
+    skip_credentials_validation = true
+    skip_metadata_api_check     = true
+    skip_region_validation      = true
+    skip_requesting_account_id  = true
+    use_path_style              = true
+  }
+}

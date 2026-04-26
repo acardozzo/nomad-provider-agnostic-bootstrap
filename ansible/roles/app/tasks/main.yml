@@ -1,0 +1,31 @@
+---
+- name: Validate required app vars
+  ansible.builtin.assert:
+    that:
+      - app_name | length > 0
+      - app_image | length > 0
+      - app_host | length > 0
+    fail_msg: "app role requires app_name, app_image, and app_host"
+
+- name: Ensure Nomad jobs directory exists
+  ansible.builtin.file:
+    path: /opt/nomad/jobs
+    state: directory
+    owner: nomad
+    group: nomad
+    mode: "0755"
+
+- name: Render Nomad job for {{ app_name }}
+  ansible.builtin.template:
+    src: app.nomad.hcl.j2
+    dest: "/opt/nomad/jobs/{{ app_name }}.nomad.hcl"
+    owner: nomad
+    group: nomad
+    mode: "0644"
+
+- name: Submit Nomad job for {{ app_name }}
+  ansible.builtin.command: "nomad job run /opt/nomad/jobs/{{ app_name }}.nomad.hcl"
+  environment:
+    NOMAD_TOKEN: "{{ nomad_bootstrap_token }}"
+  register: app_job_run
+  changed_when: "'job registration successful' in app_job_run.stdout.lower() or 'previously registered' in app_job_run.stdout.lower()"

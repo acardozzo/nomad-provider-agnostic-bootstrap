@@ -4,6 +4,7 @@
   become: true
   roles:
     - common
+    - hardening
     - consul
     - nomad
 
@@ -18,3 +19,21 @@
   become: true
   roles:
     - sample_app
+
+- name: Deploy backup jobs
+  hosts: servers[0]
+  become: true
+  roles:
+    - backups
+
+- name: Deploy monitoring stack
+  hosts: servers[0]
+  become: true
+  roles:
+    - monitoring
+
+- name: Deploy nomad-autoscaler
+  hosts: servers[0]
+  become: true
+  roles:
+    - autoscaler

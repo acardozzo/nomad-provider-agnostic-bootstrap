@@ -1,0 +1,47 @@
+job "node-exporter" {
+  datacenters = ["{{ nomad_datacenter }}"]
+  type        = "system"
+
+  group "exporter" {
+    network {
+      mode = "host"
+
+      port "metrics" {
+        static = 9100
+      }
+    }
+
+    service {
+      name = "node-exporter"
+      port = "metrics"
+
+      check {
+        type     = "http"
+        path     = "/metrics"
+        interval = "30s"
+        timeout  = "5s"
+      }
+    }
+
+    task "node-exporter" {
+      driver = "docker"
+
+      config {
+        image        = "{{ node_exporter_image }}"
+        network_mode = "host"
+        args = [
+          "--path.rootfs=/host",
+          "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($|/)"
+        ]
+        volumes = [
+          "/:/host:ro,rslave"
+        ]
+      }
+
+      resources {
+        cpu    = 100
+        memory = 64
+      }
+    }
+  }
+}

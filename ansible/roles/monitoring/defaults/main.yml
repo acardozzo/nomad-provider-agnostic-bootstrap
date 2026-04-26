@@ -1,0 +1,7 @@
+---
+prometheus_data_dir: "/var/lib/prometheus"
+grafana_data_dir: "/var/lib/grafana"
+prometheus_image: "prom/prometheus:v2.55.1"
+node_exporter_image: "prom/node-exporter:v1.8.2"
+grafana_image: "grafana/grafana:11.3.0"
+grafana_host: "grafana.{{ traefik_domain }}"

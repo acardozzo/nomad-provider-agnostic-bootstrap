@@ -1,0 +1,55 @@
+name: lint
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ansible-lint and yamllint
+        run: pip install ansible-lint==24.* yamllint==1.* jinja2 PyYAML
+
+      - name: yamllint
+        run: yamllint ansible/ .github/
+
+      - name: ansible-lint
+        run: ansible-lint ansible/
+
+      - name: jinja parse
+        run: |
+          python3 - <<'PY'
+          import jinja2, glob
+          e = jinja2.Environment()
+          for p in glob.glob("ansible/**/*.j2", recursive=True):
+              e.parse(open(p).read())
+              print("ok:", p)
+          PY
+
+      - name: bash -n
+        run: |
+          set -e
+          for f in bin/* tests/smoke/*.sh; do bash -n "$f" && echo "ok: $f"; done
+
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+      - name: terraform fmt
+        run: terraform -chdir=terraform fmt -check -recursive
+      - name: terraform validate
+        run: |
+          terraform -chdir=terraform init -backend=false
+          terraform -chdir=terraform validate

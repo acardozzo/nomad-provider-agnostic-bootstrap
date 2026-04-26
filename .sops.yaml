@@ -1,0 +1,5 @@
+creation_rules:
+  - path_regex: secrets/.*\.ya?ml$
+    age: ${SOPS_AGE_RECIPIENTS:-}
+  - path_regex: secrets/.*\.tfvars$
+    age: ${SOPS_AGE_RECIPIENTS:-}

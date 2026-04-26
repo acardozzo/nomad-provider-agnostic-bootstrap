@@ -1,0 +1,4 @@
+---
+backup_local_dir: "/var/backups/consul"
+backup_retain: 14
+backup_cron: "0 */6 * * *"   # every 6 hours

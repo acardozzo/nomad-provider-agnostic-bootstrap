@@ -1,23 +1,12 @@
 ---
-- name: Create Nomad jobs directory for sample app
-  ansible.builtin.file:
-    path: /opt/nomad/jobs
-    state: directory
-    owner: nomad
-    group: nomad
-    mode: "0755"
-
-- name: Render whoami Nomad job
-  ansible.builtin.template:
-    src: whoami.nomad.hcl.j2
-    dest: /opt/nomad/jobs/whoami.nomad.hcl
-    owner: nomad
-    group: nomad
-    mode: "0644"
-
-- name: Run whoami job
-  ansible.builtin.command: nomad job run /opt/nomad/jobs/whoami.nomad.hcl
-  environment:
-    NOMAD_TOKEN: "{{ nomad_bootstrap_token }}"
-  register: whoami_job_run
-  changed_when: "'job registration successful' in whoami_job_run.stdout.lower() or 'previously registered' in whoami_job_run.stdout.lower()"
+- name: Deploy whoami via the generic app role
+  ansible.builtin.include_role:
+    name: app
+  vars:
+    app_name: whoami
+    app_image: "traefik/whoami:v1.10"
+    app_host: "{{ traefik_domain }}"
+    app_path_prefix: "/whoami"
+    app_container_port: 80
+    app_cpu: 100
+    app_memory: 64

@@ -1,0 +1,12 @@
+extends: default
+rules:
+  line-length: disable
+  truthy:
+    check-keys: false
+  indentation:
+    indent-sequences: consistent
+  comments:
+    min-spaces-from-content: 1
+ignore: |
+  .terraform/
+  terraform/

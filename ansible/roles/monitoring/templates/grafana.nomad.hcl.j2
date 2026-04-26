@@ -1,0 +1,75 @@
+job "grafana" {
+  datacenters = ["{{ nomad_datacenter }}"]
+  type        = "service"
+
+  group "grafana" {
+    count = 1
+
+    constraint {
+      attribute = "${node.class}"
+      operator  = "="
+      value     = "client"
+    }
+
+    network {
+      mode = "host"
+
+      port "http" {
+        static = 3000
+      }
+    }
+
+    volume "data" {
+      type      = "host"
+      source    = "grafana_data"
+      read_only = false
+    }
+
+    service {
+      name = "grafana"
+      port = "http"
+
+      check {
+        type     = "http"
+        path     = "/api/health"
+        interval = "10s"
+        timeout  = "2s"
+      }
+
+      tags = [
+        "traefik.enable=true",
+        "traefik.http.routers.grafana.rule=Host(`{{ grafana_host }}`)",
+        "traefik.http.routers.grafana.entrypoints=websecure",
+        "traefik.http.routers.grafana.tls=true",
+        "traefik.http.routers.grafana.tls.certresolver=le",
+      ]
+    }
+
+    task "grafana" {
+      driver = "docker"
+
+      volume_mount {
+        volume      = "data"
+        destination = "/var/lib/grafana"
+        read_only   = false
+      }
+
+      env {
+        GF_SECURITY_ADMIN_USER     = "{{ dashboard_basic_auth_user | default('admin') }}"
+        GF_SECURITY_ADMIN_PASSWORD = "{{ dashboard_basic_auth_password | default('admin') }}"
+        GF_SERVER_ROOT_URL         = "https://{{ grafana_host }}"
+        GF_USERS_ALLOW_SIGN_UP     = "false"
+      }
+
+      config {
+        image        = "{{ grafana_image }}"
+        network_mode = "host"
+      }
+
+      resources {
+        cpu    = 200
+        memory = 256
+      }
+    }
+  }
+}

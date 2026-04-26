@@ -3,8 +3,11 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+# shellcheck source=./_load_secrets
+source "$ROOT_DIR/bin/_load_secrets"
+
 if [[ -z "${VULTR_API_KEY:-}" && -z "${LINODE_TOKEN:-}" ]]; then
-  echo "Set VULTR_API_KEY or LINODE_TOKEN before running apply." >&2
+  echo "Set VULTR_API_KEY or LINODE_TOKEN (env or secrets/cluster.yaml) before running apply." >&2
   exit 1
 fi
 
