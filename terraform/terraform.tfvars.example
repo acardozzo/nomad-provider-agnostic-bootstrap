@@ -10,3 +10,9 @@ ansible_user         = "root"
 # Export provider credentials instead of storing them here:
 # export VULTR_API_KEY="..."
 # export LINODE_TOKEN="..."
+
+# Ansible ingress configuration is set in ansible/group_vars/all.yml:
+#   traefik_domain          = "example.com"
+#   traefik_dashboard_host  = "traefik.example.com"
+#   acme_email              = "ops@example.com"
+# DNS A records for both hostnames must resolve to a client node public IP.

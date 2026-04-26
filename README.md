@@ -105,6 +105,17 @@ The bootstrap also submits a sample `whoami` service. Once DNS or public IP acce
 curl http://<public-ip>/whoami
 ```
 
+## DNS prerequisites for TLS
+
+Before `bin/bootstrap`, point an A record for `traefik_domain` and
+`traefik_dashboard_host` (set in `ansible/group_vars/all.yml`) at any client
+node's public IP. Traefik solves Let's Encrypt HTTP-01 on port 80, so the
+target host must be publicly reachable on port 80 during issuance.
+
+The dashboard basic-auth hash is generated locally by `secrets.yml`, which
+requires the `htpasswd` binary (`apache2-utils` on Debian/Ubuntu,
+`httpd-tools` on RHEL, `httpd` on macOS via brew).
+
 ## Notes
 
 - Vultr setup is richer today because its VPC and firewall resources are straightforward in the official provider docs.
