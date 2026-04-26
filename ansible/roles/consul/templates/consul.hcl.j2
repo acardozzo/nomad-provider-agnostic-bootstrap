@@ -3,8 +3,25 @@ data_dir = "{{ consul_data_dir }}"
 bind_addr = "{{ hostvars[inventory_hostname].private_ip | default(ansible_host) }}"
 client_addr = "0.0.0.0"
 server = {{ "true" if inventory_hostname in groups['servers'] else "false" }}
+{% if inventory_hostname in groups['servers'] %}
 bootstrap_expect = {{ groups['servers'] | length }}
+{% endif %}
 retry_join = [{% for host in groups['servers'] %}"{{ hostvars[host].private_ip | default(hostvars[host].ansible_host) }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+
+encrypt = "{{ consul_gossip_key }}"
+
+acl {
+  enabled                  = true
+  default_policy           = "deny"
+  enable_token_persistence = true
+  {% if consul_bootstrap_token %}
+  tokens {
+    agent   = "{{ consul_bootstrap_token }}"
+    default = "{{ consul_bootstrap_token }}"
+  }
+  {% endif %}
+}
+
 ui_config {
   enabled = true
 }
