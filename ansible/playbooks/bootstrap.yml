@@ -31,3 +31,9 @@
   become: true
   roles:
     - monitoring
+
+- name: Deploy nomad-autoscaler
+  hosts: servers[0]
+  become: true
+  roles:
+    - autoscaler

@@ -16,6 +16,28 @@ job "{{ app_name }}" {
   group "web" {
     count = {{ app_count }}
 
+{% if app_autoscale %}
+    scaling {
+      enabled = true
+      min     = {{ app_min_count }}
+      max     = {{ app_max_count }}
+
+      policy {
+        cooldown            = "1m"
+        evaluation_interval = "30s"
+
+        check "cpu" {
+          source = "prometheus"
+          query  = "avg(rate(nomad_client_allocs_cpu_total_percent{exported_job=\"{{ app_name }}\"}[1m]))"
+
+          strategy "target-value" {
+            target = {{ app_target_cpu }}
+          }
+        }
+      }
+    }
+{% endif %}
+
     network {
       port "http" {
         to = {{ app_container_port }}
