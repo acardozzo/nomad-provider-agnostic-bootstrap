@@ -21,23 +21,38 @@ job "traefik" {
       port "https" {
         static = 443
       }
+    }
 
-      port "dashboard" {
-        static = 8080
-      }
+    volume "acme" {
+      type      = "host"
+      source    = "traefik_acme"
+      read_only = false
     }
 
     service {
       name = "traefik"
-      port = "http"
+      port = "https"
 
       tags = [
-        "traefik.enable=true"
+        "traefik.enable=true",
+        "traefik.http.routers.dashboard.rule=Host(`{{ traefik_dashboard_host }}`)",
+        "traefik.http.routers.dashboard.entrypoints=websecure",
+        "traefik.http.routers.dashboard.tls=true",
+        "traefik.http.routers.dashboard.tls.certresolver=le",
+        "traefik.http.routers.dashboard.service=api@internal",
+        "traefik.http.routers.dashboard.middlewares=dashboard-auth",
+        "traefik.http.middlewares.dashboard-auth.basicauth.users={{ dashboard_basic_auth_htpasswd }}"
       ]
     }
 
     task "traefik" {
       driver = "docker"
+
+      volume_mount {
+        volume      = "acme"
+        destination = "/etc/traefik/acme"
+        read_only   = false
+      }
 
       env {
         CONSUL_HTTP_TOKEN = "{{ consul_bootstrap_token }}"
@@ -49,10 +64,14 @@ job "traefik" {
 
         args = [
           "--api.dashboard=true",
-          "--api.insecure=true",
           "--entrypoints.web.address=:80",
+          "--entrypoints.web.http.redirections.entrypoint.to=websecure",
+          "--entrypoints.web.http.redirections.entrypoint.scheme=https",
           "--entrypoints.websecure.address=:443",
-          "--entrypoints.traefik.address=:8080",
+          "--certificatesresolvers.le.acme.email={{ acme_email }}",
+          "--certificatesresolvers.le.acme.storage=/etc/traefik/acme/acme.json",
+          "--certificatesresolvers.le.acme.httpchallenge=true",
+          "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web",
           "--providers.consulcatalog.endpoint.address=127.0.0.1:8500",
           "--providers.consulcatalog.endpoint.token={{ consul_bootstrap_token }}",
           "--providers.consulcatalog.exposedByDefault=false"
