@@ -33,3 +33,8 @@ variable "ssh_public_key" {
 variable "cluster_tags" {
   type = list(string)
 }
+
+variable "vpc_cidr" {
+  type    = string
+  default = "10.42.0.0/24"
+}
