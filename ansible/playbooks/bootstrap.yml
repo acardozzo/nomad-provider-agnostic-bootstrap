@@ -1,0 +1,20 @@
+---
+- name: Bootstrap Nomad cluster
+  hosts: all
+  become: true
+  roles:
+    - common
+    - consul
+    - nomad
+
+- name: Deploy Traefik ingress
+  hosts: servers[0]
+  become: true
+  roles:
+    - traefik
+
+- name: Deploy sample app behind Traefik
+  hosts: servers[0]
+  become: true
+  roles:
+    - sample_app

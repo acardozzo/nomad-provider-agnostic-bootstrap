@@ -1,0 +1,8 @@
+.terraform/
+.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfstate.*
+terraform/crash.log
+terraform/terraform.tfvars
+terraform/*.auto.tfvars
+ansible/inventory/hosts.ini

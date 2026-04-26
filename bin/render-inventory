@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+OUTPUT_FILE="$ROOT_DIR/ansible/inventory/hosts.ini"
+ANSIBLE_USER="$(terraform -chdir="$ROOT_DIR/terraform" output -raw ansible_user)"
+
+terraform -chdir="$ROOT_DIR/terraform" output -json instances > /tmp/nomad_instances.json
+
+{
+  echo "[servers]"
+  jq -r --arg ansible_user "$ANSIBLE_USER" '.[] | select(.role=="server") | . as $node | "\($node.name) ansible_host=\($node.public_ip) ansible_user=\($ansible_user) private_ip=\(if (($node.private_ip // "") == "") then $node.public_ip else $node.private_ip end)"' /tmp/nomad_instances.json
+  echo
+  echo "[clients]"
+  jq -r --arg ansible_user "$ANSIBLE_USER" '.[] | select(.role=="client") | . as $node | "\($node.name) ansible_host=\($node.public_ip) ansible_user=\($ansible_user) private_ip=\(if (($node.private_ip // "") == "") then $node.public_ip else $node.private_ip end)"' /tmp/nomad_instances.json
+} > "$OUTPUT_FILE"
+
+echo "Wrote $OUTPUT_FILE"

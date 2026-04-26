@@ -1,0 +1,12 @@
+---
+ansible_user: root
+
+consul_version: "1.20.5"
+nomad_version: "1.10.2"
+
+cluster_name: "nomad-cluster"
+nomad_datacenter: "dc1"
+nomad_bind_addr: "0.0.0.0"
+nomad_data_dir: "/var/lib/nomad"
+consul_data_dir: "/var/lib/consul"
+traefik_version: "v3.1"

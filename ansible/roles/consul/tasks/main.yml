@@ -1,0 +1,64 @@
+---
+- name: Create consul group
+  ansible.builtin.group:
+    name: consul
+    system: true
+
+- name: Create consul user
+  ansible.builtin.user:
+    name: consul
+    group: consul
+    shell: /usr/sbin/nologin
+    system: true
+    create_home: false
+
+- name: Create consul directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: consul
+    group: consul
+    mode: "0755"
+  loop:
+    - /etc/consul.d
+    - "{{ consul_data_dir }}"
+
+- name: Download consul archive
+  ansible.builtin.get_url:
+    url: "https://releases.hashicorp.com/consul/{{ consul_version }}/consul_{{ consul_version }}_linux_amd64.zip"
+    dest: "/tmp/consul_{{ consul_version }}_linux_amd64.zip"
+    mode: "0644"
+
+- name: Install consul binary
+  ansible.builtin.unarchive:
+    src: "/tmp/consul_{{ consul_version }}_linux_amd64.zip"
+    dest: /usr/local/bin
+    remote_src: true
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Render consul config
+  ansible.builtin.template:
+    src: consul.hcl.j2
+    dest: /etc/consul.d/consul.hcl
+    owner: consul
+    group: consul
+    mode: "0640"
+  notify: restart consul
+
+- name: Render consul service
+  ansible.builtin.template:
+    src: consul.service.j2
+    dest: /etc/systemd/system/consul.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: restart consul
+
+- name: Enable consul service
+  ansible.builtin.systemd:
+    name: consul
+    daemon_reload: true
+    enabled: true
+    state: started

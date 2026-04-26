@@ -1,0 +1,28 @@
+datacenter = "{{ nomad_datacenter }}"
+data_dir = "{{ nomad_data_dir }}"
+bind_addr = "{{ nomad_bind_addr }}"
+node_class = "client"
+
+client {
+  enabled = true
+  servers = [{% for host in groups['servers'] %}"{{ hostvars[host].private_ip | default(hostvars[host].ansible_host) }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+  options = {
+    "driver.raw_exec.enable" = "1"
+  }
+}
+
+plugin "docker" {
+  config {
+    allow_privileged = true
+  }
+}
+
+advertise {
+  http = "{{ hostvars[inventory_hostname].private_ip | default(ansible_host) }}"
+  rpc  = "{{ hostvars[inventory_hostname].private_ip | default(ansible_host) }}"
+  serf = "{{ hostvars[inventory_hostname].private_ip | default(ansible_host) }}"
+}
+
+consul {
+  address = "127.0.0.1:8500"
+}

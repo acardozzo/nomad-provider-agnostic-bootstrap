@@ -1,0 +1,21 @@
+---
+- name: Create Nomad jobs directory for sample app
+  ansible.builtin.file:
+    path: /opt/nomad/jobs
+    state: directory
+    owner: nomad
+    group: nomad
+    mode: "0755"
+
+- name: Render whoami Nomad job
+  ansible.builtin.template:
+    src: whoami.nomad.hcl.j2
+    dest: /opt/nomad/jobs/whoami.nomad.hcl
+    owner: nomad
+    group: nomad
+    mode: "0644"
+
+- name: Run whoami job
+  ansible.builtin.command: nomad job run /opt/nomad/jobs/whoami.nomad.hcl
+  register: whoami_job_run
+  changed_when: "'job registration successful' in whoami_job_run.stdout.lower() or 'previously registered' in whoami_job_run.stdout.lower()"

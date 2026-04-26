@@ -1,0 +1,64 @@
+---
+- name: Create nomad group
+  ansible.builtin.group:
+    name: nomad
+    system: true
+
+- name: Create nomad user
+  ansible.builtin.user:
+    name: nomad
+    group: nomad
+    shell: /usr/sbin/nologin
+    system: true
+    create_home: false
+
+- name: Create nomad directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: nomad
+    group: nomad
+    mode: "0755"
+  loop:
+    - /etc/nomad.d
+    - "{{ nomad_data_dir }}"
+
+- name: Download nomad archive
+  ansible.builtin.get_url:
+    url: "https://releases.hashicorp.com/nomad/{{ nomad_version }}/nomad_{{ nomad_version }}_linux_amd64.zip"
+    dest: "/tmp/nomad_{{ nomad_version }}_linux_amd64.zip"
+    mode: "0644"
+
+- name: Install nomad binary
+  ansible.builtin.unarchive:
+    src: "/tmp/nomad_{{ nomad_version }}_linux_amd64.zip"
+    dest: /usr/local/bin
+    remote_src: true
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Render nomad config
+  ansible.builtin.template:
+    src: "{{ 'nomad-server.hcl.j2' if inventory_hostname in groups['servers'] else 'nomad-client.hcl.j2' }}"
+    dest: /etc/nomad.d/nomad.hcl
+    owner: nomad
+    group: nomad
+    mode: "0640"
+  notify: restart nomad
+
+- name: Render nomad service
+  ansible.builtin.template:
+    src: nomad.service.j2
+    dest: /etc/systemd/system/nomad.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: restart nomad
+
+- name: Enable nomad service
+  ansible.builtin.systemd:
+    name: nomad
+    daemon_reload: true
+    enabled: true
+    state: started

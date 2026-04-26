@@ -1,0 +1,17 @@
+[Unit]
+Description=HashiCorp Nomad
+Documentation=https://developer.hashicorp.com/nomad/docs
+After=network-online.target consul.service docker.service
+Wants=network-online.target
+
+[Service]
+User=nomad
+Group=nomad
+ExecStart=/usr/local/bin/nomad agent -config=/etc/nomad.d
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

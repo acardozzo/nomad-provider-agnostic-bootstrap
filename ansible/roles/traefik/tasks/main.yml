@@ -1,0 +1,29 @@
+---
+- name: Create Traefik jobs directory
+  ansible.builtin.file:
+    path: /opt/nomad/jobs
+    state: directory
+    owner: nomad
+    group: nomad
+    mode: "0755"
+
+- name: Render Traefik Nomad job
+  ansible.builtin.template:
+    src: traefik.nomad.hcl.j2
+    dest: /opt/nomad/jobs/traefik.nomad.hcl
+    owner: nomad
+    group: nomad
+    mode: "0644"
+
+- name: Wait for Nomad servers to elect a leader
+  ansible.builtin.command: nomad server members
+  register: nomad_server_members
+  changed_when: false
+  retries: 20
+  delay: 5
+  until: nomad_server_members.rc == 0
+
+- name: Run Traefik job
+  ansible.builtin.command: nomad job run /opt/nomad/jobs/traefik.nomad.hcl
+  register: traefik_job_run
+  changed_when: "'job registration successful' in traefik_job_run.stdout.lower() or 'previously registered' in traefik_job_run.stdout.lower()"

@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+if [[ -n "${VULTR_API_KEY:-}" ]]; then
+  export TF_VAR_provider_name="${TF_VAR_provider_name:-vultr}"
+fi
+
+if [[ -n "${LINODE_TOKEN:-}" ]]; then
+  export TF_VAR_provider_name="${TF_VAR_provider_name:-linode}"
+fi
+
+terraform -chdir="$ROOT_DIR/terraform" init
+terraform -chdir="$ROOT_DIR/terraform" plan
