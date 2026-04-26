@@ -17,5 +17,7 @@
 
 - name: Run whoami job
   ansible.builtin.command: nomad job run /opt/nomad/jobs/whoami.nomad.hcl
+  environment:
+    NOMAD_TOKEN: "{{ nomad_bootstrap_token }}"
   register: whoami_job_run
   changed_when: "'job registration successful' in whoami_job_run.stdout.lower() or 'previously registered' in whoami_job_run.stdout.lower()"

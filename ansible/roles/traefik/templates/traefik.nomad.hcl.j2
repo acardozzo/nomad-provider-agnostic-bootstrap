@@ -39,6 +39,10 @@ job "traefik" {
     task "traefik" {
       driver = "docker"
 
+      env {
+        CONSUL_HTTP_TOKEN = "{{ consul_bootstrap_token }}"
+      }
+
       config {
         image        = "traefik:{{ traefik_version }}"
         network_mode = "host"
@@ -50,6 +54,7 @@ job "traefik" {
           "--entrypoints.websecure.address=:443",
           "--entrypoints.traefik.address=:8080",
           "--providers.consulcatalog.endpoint.address=127.0.0.1:8500",
+          "--providers.consulcatalog.endpoint.token={{ consul_bootstrap_token }}",
           "--providers.consulcatalog.exposedByDefault=false"
         ]
       }
