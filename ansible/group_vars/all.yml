@@ -10,3 +10,10 @@ nomad_bind_addr: "0.0.0.0"
 nomad_data_dir: "/var/lib/nomad"
 consul_data_dir: "/var/lib/consul"
 traefik_version: "v3.1"
+
+# Filled by ansible/playbooks/secrets.yml — DO NOT set by hand
+consul_gossip_key: ""
+nomad_gossip_key: ""
+consul_bootstrap_token: ""
+nomad_bootstrap_token: ""
+nomad_ingress_token: ""
