@@ -18,24 +18,22 @@ This checklist tracks what is already automated in the bootstrap and what still 
 - [x] Traefik deployment as a Nomad job
 - [x] Sample app deployment behind Traefik
 - [x] One-command flow shape with `bin/apply`, `bin/bootstrap`, and `bin/destroy`
+- [x] Consul ACL bootstrap
+- [x] Nomad ACL bootstrap
+- [x] DNS records (operator-managed prerequisite, automation-checked at smoke)
+- [x] Let's Encrypt / ACME certificates
+- [x] Sample app domain routing by hostname
+- [x] Post-deploy smoke tests against live endpoints
 
 ## Partially Automated
 
 [-] Linode networking and firewall parity with Vultr
-[-] Traefik production ingress features like TLS, DNS, and hardened middleware
+[x] Traefik production ingress features like TLS, DNS, and hardened middleware
 [-] Generic Nomad app deployment pipeline beyond the sample app
 [-] Secret injection for provider tokens and SSH key without manual operator setup
 [-] Local Ansible validation in this environment
 
 ## Not Automated Yet
-
-[ ] DNS records
-
-[ ] Let's Encrypt / ACME certificates
-
-[ ] Nomad ACL bootstrap
-
-[ ] Consul ACL bootstrap
 
 [ ] Vault integration
 
@@ -49,11 +47,7 @@ This checklist tracks what is already automated in the bootstrap and what still 
 
 [ ] Provider failover / multi-provider cluster strategy
 
-[ ] Sample app domain routing by hostname
-
 [ ] CI/CD for plan, apply, and bootstrap
-
-[ ] Post-deploy smoke tests against live endpoints
 
 [ ] System hardening such as fail2ban, tighter firewall rules, and OS patch policy
 

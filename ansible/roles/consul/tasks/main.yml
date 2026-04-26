@@ -62,3 +62,39 @@
     daemon_reload: true
     enabled: true
     state: started
+
+- name: Wait for Consul to be ready
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:8500/v1/status/leader"
+    status_code: 200
+  register: consul_leader_check
+  retries: 30
+  delay: 2
+  until: consul_leader_check.status == 200 and consul_leader_check.json | length > 2
+
+- name: Bootstrap Consul ACL (only on first server, only if no token captured yet)
+  ansible.builtin.command: consul acl bootstrap -format=json
+  register: consul_acl_bootstrap
+  run_once: true
+  delegate_to: "{{ groups['servers'][0] }}"
+  when:
+    - inventory_hostname == groups['servers'][0]
+    - (consul_bootstrap_token | default('')) == ''
+  changed_when: consul_acl_bootstrap.rc == 0
+  failed_when:
+    - consul_acl_bootstrap.rc != 0
+    - "'ACL bootstrap no longer allowed' not in (consul_acl_bootstrap.stderr | default(''))"
+
+- name: Persist Consul bootstrap token to local secrets file
+  ansible.builtin.lineinfile:
+    path: "{{ playbook_dir }}/../inventory/group_vars/secrets.yml"
+    regexp: '^consul_bootstrap_token:'
+    line: "consul_bootstrap_token: \"{{ (consul_acl_bootstrap.stdout | from_json).SecretID }}\""
+    mode: "0600"
+  delegate_to: localhost
+  run_once: true
+  when:
+    - consul_acl_bootstrap is defined
+    - consul_acl_bootstrap is not skipped
+    - consul_acl_bootstrap.stdout is defined
+    - consul_acl_bootstrap.stdout | length > 0

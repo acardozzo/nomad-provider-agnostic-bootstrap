@@ -9,6 +9,15 @@ client {
   options = {
     "driver.raw_exec.enable" = "1"
   }
+
+  host_volume "traefik_acme" {
+    path      = "{{ acme_storage_host_path }}"
+    read_only = false
+  }
+}
+
+acl {
+  enabled = true
 }
 
 plugin "docker" {
@@ -25,4 +34,7 @@ advertise {
 
 consul {
   address = "127.0.0.1:8500"
+  {% if consul_bootstrap_token %}
+  token   = "{{ consul_bootstrap_token }}"
+  {% endif %}
 }

@@ -5,9 +5,14 @@ bind_addr = "{{ nomad_bind_addr }}"
 server {
   enabled          = true
   bootstrap_expect = {{ groups['servers'] | length }}
+  encrypt          = "{{ nomad_gossip_key }}"
   server_join {
     retry_join = [{% for host in groups['servers'] %}"{{ hostvars[host].private_ip | default(hostvars[host].ansible_host) }}"{% if not loop.last %}, {% endif %}{% endfor %}]
   }
+}
+
+acl {
+  enabled = true
 }
 
 advertise {
@@ -18,4 +23,7 @@ advertise {
 
 consul {
   address = "127.0.0.1:8500"
+  {% if consul_bootstrap_token %}
+  token   = "{{ consul_bootstrap_token }}"
+  {% endif %}
 }

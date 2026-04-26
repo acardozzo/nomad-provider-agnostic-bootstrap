@@ -62,3 +62,41 @@
     daemon_reload: true
     enabled: true
     state: started
+
+- name: Wait for Nomad to be ready (server)
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:4646/v1/status/leader"
+    status_code: 200
+  register: nomad_leader_check
+  retries: 30
+  delay: 2
+  until: nomad_leader_check.status == 200
+  when: inventory_hostname in groups['servers']
+
+- name: Bootstrap Nomad ACL (only on first server, only if no token captured yet)
+  ansible.builtin.command: nomad acl bootstrap -json
+  register: nomad_acl_bootstrap
+  run_once: true
+  delegate_to: "{{ groups['servers'][0] }}"
+  when:
+    - inventory_hostname == groups['servers'][0]
+    - (nomad_bootstrap_token | default('')) == ''
+  changed_when: nomad_acl_bootstrap.rc == 0
+  failed_when:
+    - nomad_acl_bootstrap.rc != 0
+    - "'No cluster leader' not in (nomad_acl_bootstrap.stderr | default(''))"
+    - "'ACL bootstrap already done' not in (nomad_acl_bootstrap.stderr | default(''))"
+
+- name: Persist Nomad bootstrap token to local secrets file
+  ansible.builtin.lineinfile:
+    path: "{{ playbook_dir }}/../inventory/group_vars/secrets.yml"
+    regexp: '^nomad_bootstrap_token:'
+    line: "nomad_bootstrap_token: \"{{ (nomad_acl_bootstrap.stdout | from_json).SecretID }}\""
+    mode: "0600"
+  delegate_to: localhost
+  run_once: true
+  when:
+    - nomad_acl_bootstrap is defined
+    - nomad_acl_bootstrap is not skipped
+    - nomad_acl_bootstrap.stdout is defined
+    - nomad_acl_bootstrap.stdout | length > 0
