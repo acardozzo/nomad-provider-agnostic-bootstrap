@@ -1,0 +1,64 @@
+name: terraform-plan
+
+on:
+  pull_request:
+    paths:
+      - "terraform/**"
+      - ".github/workflows/plan.yml"
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      VULTR_API_KEY: ${{ secrets.VULTR_API_KEY }}
+      LINODE_TOKEN: ${{ secrets.LINODE_TOKEN }}
+      TF_VAR_provider_name: ${{ vars.PROVIDER_NAME }}
+      TF_VAR_cluster_name: ${{ vars.CLUSTER_NAME }}
+      TF_VAR_region: ${{ vars.REGION }}
+      TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
+      TF_VAR_image: ${{ vars.IMAGE }}
+      TF_VAR_server_instance_type: ${{ vars.SERVER_INSTANCE_TYPE }}
+      TF_VAR_client_instance_type: ${{ vars.CLIENT_INSTANCE_TYPE }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+
+      - name: Drop backend.tf into place (S3-compat remote state)
+        run: cp terraform/backend.tf.example terraform/backend.tf
+
+      - name: terraform init
+        run: |
+          terraform -chdir=terraform init \
+            -backend-config="bucket=${{ vars.TF_BUCKET }}" \
+            -backend-config="key=nomad-cluster/terraform.tfstate" \
+            -backend-config="region=${{ vars.TF_REGION }}" \
+            -backend-config="endpoint=${{ vars.TF_ENDPOINT }}" \
+            -backend-config="access_key=${{ secrets.TF_ACCESS_KEY }}" \
+            -backend-config="secret_key=${{ secrets.TF_SECRET_KEY }}"
+
+      - name: terraform plan
+        id: plan
+        run: |
+          terraform -chdir=terraform plan -no-color -input=false 2>&1 | tee /tmp/plan.txt
+          {
+            echo 'plan<<EOF'
+            tail -c 60000 /tmp/plan.txt
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Comment plan on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `### terraform plan\n\n\`\`\`hcl\n${{ steps.plan.outputs.plan }}\n\`\`\``;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });
