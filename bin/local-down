@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PREFIX="${LOCAL_PREFIX:-nomad-local}"
+
+if ! command -v multipass >/dev/null; then
+  echo "multipass not installed; nothing to tear down."
+  exit 0
+fi
+
+mapfile -t names < <(multipass list --format json | python3 -c "
+import sys,json
+d=json.load(sys.stdin)
+for v in d.get('list', []):
+    name=v.get('name','')
+    if name.startswith('${PREFIX}-'):
+        print(name)
+")
+
+if [[ ${#names[@]} -eq 0 ]]; then
+  echo "No ${PREFIX}-* VMs found."
+  exit 0
+fi
+
+echo "==> Deleting: ${names[*]}"
+multipass delete "${names[@]}"
+multipass purge
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+rm -f "$ROOT_DIR/ansible/inventory/hosts.ini"
+rm -f "$ROOT_DIR/ansible/inventory/group_vars/all_local.yml"
+echo "==> Local cluster torn down."

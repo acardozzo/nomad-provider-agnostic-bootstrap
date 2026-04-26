@@ -56,7 +56,9 @@ job "traefik" {
         "traefik.http.routers.dashboard.rule=Host(`{{ traefik_dashboard_host }}`)",
         "traefik.http.routers.dashboard.entrypoints=websecure",
         "traefik.http.routers.dashboard.tls=true",
+{% if acme_enabled %}
         "traefik.http.routers.dashboard.tls.certresolver=le",
+{% endif %}
         "traefik.http.routers.dashboard.service=api@internal",
         "traefik.http.routers.dashboard.middlewares=dashboard-auth",
         "traefik.http.middlewares.dashboard-auth.basicauth.users={{ dashboard_basic_auth_htpasswd }}"
@@ -86,10 +88,15 @@ job "traefik" {
           "--entrypoints.web.http.redirections.entrypoint.to=websecure",
           "--entrypoints.web.http.redirections.entrypoint.scheme=https",
           "--entrypoints.websecure.address=:443",
+{% if acme_enabled %}
           "--certificatesresolvers.le.acme.email={{ acme_email }}",
           "--certificatesresolvers.le.acme.storage=/etc/traefik/acme/acme.json",
           "--certificatesresolvers.le.acme.httpchallenge=true",
           "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web",
+{% if acme_caserver %}
+          "--certificatesresolvers.le.acme.caserver={{ acme_caserver }}",
+{% endif %}
+{% endif %}
           "--providers.consulcatalog.endpoint.address=127.0.0.1:8500",
           "--providers.consulcatalog.endpoint.token={{ consul_bootstrap_token }}",
           "--providers.consulcatalog.exposedByDefault=false"

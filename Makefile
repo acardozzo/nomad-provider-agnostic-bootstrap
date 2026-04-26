@@ -33,3 +33,22 @@ syntax-check: ## ansible-playbook --syntax-check via container
 
 fmt: ## Format all .tf
 	terraform -chdir=terraform fmt -recursive
+
+# --- Local dev (Docker compose: Traefik + whoami fast smoke) ---
+
+local-traefik-up: ## Bring up dev/docker compose stack
+	docker compose -f dev/docker/compose.yml up -d --wait
+
+local-traefik-down: ## Tear down dev/docker compose stack
+	docker compose -f dev/docker/compose.yml down -v
+
+local-traefik-smoke: ## Run smoke against dev/docker compose stack
+	./tests/smoke/test_local_traefik.sh
+
+# --- Local dev (Multipass: full 5-VM cluster replica) ---
+
+local-cluster-up: ## Spin up 5-VM local cluster via Multipass and run Ansible bootstrap
+	./bin/local-up
+
+local-cluster-down: ## Destroy the 5-VM local cluster
+	./bin/local-down

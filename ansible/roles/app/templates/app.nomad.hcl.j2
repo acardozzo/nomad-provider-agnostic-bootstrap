@@ -68,7 +68,9 @@ job "{{ app_name }}" {
         "traefik.http.routers.{{ app_name }}.entrypoints={{ entrypoints }}",
 {% if app_tls %}
         "traefik.http.routers.{{ app_name }}.tls=true",
+{% if acme_enabled | default(true) %}
         "traefik.http.routers.{{ app_name }}.tls.certresolver=le",
+{% endif %}
 {% endif %}
       ]
     }

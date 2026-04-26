@@ -4,9 +4,9 @@
     that:
       - traefik_domain | length > 0
       - traefik_dashboard_host | length > 0
-      - acme_email | length > 0
       - dashboard_basic_auth_htpasswd | length > 0
-    fail_msg: "Set traefik_domain, traefik_dashboard_host, acme_email in ansible/group_vars/all.yml; rerun secrets.yml to populate dashboard credentials."
+      - (not acme_enabled) or (acme_email | length > 0)
+    fail_msg: "Set traefik_domain, traefik_dashboard_host (and acme_email if acme_enabled) in ansible/group_vars/all.yml; rerun secrets.yml to populate dashboard credentials."
 
 - name: Create Traefik ACME storage directory
   ansible.builtin.file:
