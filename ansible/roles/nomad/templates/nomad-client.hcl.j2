@@ -14,6 +14,11 @@ client {
     path      = "{{ acme_storage_host_path }}"
     read_only = false
   }
+
+  host_volume "consul_backups" {
+    path      = "{{ backup_local_dir | default('/var/backups/consul') }}"
+    read_only = false
+  }
 }
 
 acl {

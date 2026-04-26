@@ -19,3 +19,9 @@
   become: true
   roles:
     - sample_app
+
+- name: Deploy backup jobs
+  hosts: servers[0]
+  become: true
+  roles:
+    - backups
