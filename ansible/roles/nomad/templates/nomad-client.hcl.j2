@@ -9,6 +9,11 @@ client {
   options = {
     "driver.raw_exec.enable" = "1"
   }
+
+  host_volume "traefik_acme" {
+    path      = "{{ acme_storage_host_path }}"
+    read_only = false
+  }
 }
 
 acl {
