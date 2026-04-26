@@ -1,4 +1,31 @@
 ---
+- name: Validate required ingress vars
+  ansible.builtin.assert:
+    that:
+      - traefik_domain | length > 0
+      - traefik_dashboard_host | length > 0
+      - acme_email | length > 0
+      - dashboard_basic_auth_htpasswd | length > 0
+    fail_msg: "Set traefik_domain, traefik_dashboard_host, acme_email in ansible/group_vars/all.yml; rerun secrets.yml to populate dashboard credentials."
+
+- name: Create Traefik ACME storage directory
+  ansible.builtin.file:
+    path: "{{ acme_storage_host_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Pre-create acme.json with strict permissions
+  ansible.builtin.file:
+    path: "{{ acme_storage_host_path }}/acme.json"
+    state: touch
+    owner: root
+    group: root
+    mode: "0600"
+    modification_time: preserve
+    access_time: preserve
+
 - name: Create Traefik jobs directory
   ansible.builtin.file:
     path: /opt/nomad/jobs
