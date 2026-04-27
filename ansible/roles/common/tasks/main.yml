@@ -19,3 +19,17 @@
     name: docker
     enabled: true
     state: started
+
+- name: Pre-create host volume directories on clients (Nomad host_volume validates at startup)
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - "{{ acme_storage_host_path | default('/opt/traefik/acme') }}"
+    - "{{ backup_local_dir | default('/var/backups/consul') }}"
+    - "{{ prometheus_data_dir | default('/var/lib/prometheus') }}"
+    - "{{ grafana_data_dir | default('/var/lib/grafana') }}"
+  when: inventory_hostname in groups['clients']

@@ -10,7 +10,7 @@ if [[ $# -lt 1 ]]; then
 fi
 HOST="$1"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-SECRETS="$ROOT_DIR/ansible/inventory/group_vars/secrets.yml"
+SECRETS="$ROOT_DIR/ansible/inventory/group_vars/all/secrets.yml"
 
 if [[ ! -f "$SECRETS" ]]; then
   echo "FAIL: $SECRETS missing — run bin/bootstrap first" >&2

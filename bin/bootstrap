@@ -3,15 +3,20 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+export ANSIBLE_CONFIG="$ROOT_DIR/ansible/ansible.cfg"
+export ANSIBLE_ROLES_PATH="$ROOT_DIR/ansible/roles"
+
 "$ROOT_DIR/bin/render-inventory"
 ansible-playbook "$ROOT_DIR/ansible/playbooks/secrets.yml"
-ansible-playbook -i "$ROOT_DIR/ansible/inventory/hosts.ini" "$ROOT_DIR/ansible/playbooks/bootstrap.yml"
+ansible-playbook \
+  -i "$ROOT_DIR/ansible/inventory/hosts.ini" \
+  "$ROOT_DIR/ansible/playbooks/bootstrap.yml"
 
 echo
 echo "=== Post-deploy smoke tests ==="
 "$ROOT_DIR/tests/smoke/test_ingress_assets.sh"
 
-if grep -qE '^traefik_domain: *"[^"]+"' "$ROOT_DIR/ansible/group_vars/all.yml"; then
+if grep -qE '^traefik_domain: *"[^"]+"' "$ROOT_DIR/ansible/inventory/group_vars/all/defaults.yml"; then
   "$ROOT_DIR/tests/smoke/test_tls_ingress.sh"
 else
   echo "Skipping TLS ingress test (traefik_domain not set)"

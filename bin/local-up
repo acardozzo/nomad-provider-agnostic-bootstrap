@@ -129,12 +129,18 @@ EOF
 echo "==> Local overrides at $LOCAL_VARS"
 
 # 6. Run the bootstrap
+export ANSIBLE_CONFIG="$ROOT_DIR/ansible/ansible.cfg"
+export ANSIBLE_ROLES_PATH="$ROOT_DIR/ansible/roles"
+
 echo
 echo "==> Running secrets playbook"
 ansible-playbook "$ROOT_DIR/ansible/playbooks/secrets.yml"
 
 echo
 echo "==> Running bootstrap playbook"
+# all.yml and secrets.yml live in ansible/inventory/group_vars/ and auto-load.
+# Pass only the local override via -e (file is named all_local.yml so Ansible
+# won't auto-discover it; -e is the right path for overrides anyway).
 ansible-playbook \
   -i "$INV" \
   -e "@$LOCAL_VARS" \

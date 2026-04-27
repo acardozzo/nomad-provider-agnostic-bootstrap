@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+# Coleta logs e estado do cluster local Multipass num diretório único.
+# Uso: bin/local-diagnose [output_dir]
+
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+OUT="${1:-$ROOT_DIR/logs/local-cluster/diag-$(date -u +%Y%m%dT%H%M%SZ)}"
+KEY="${HOME}/.ssh/id_ed25519_nomad_local"
+
+mkdir -p "$OUT"
+echo "==> Coletando em $OUT"
+
+if ! command -v multipass >/dev/null; then
+  echo "multipass não está instalado" >&2
+  exit 1
+fi
+
+# Lista VMs do cluster
+mapfile -t vms < <(multipass list --format json | python3 -c "
+import sys,json
+d=json.load(sys.stdin)
+for v in d.get('list', []):
+    n=v.get('name','')
+    if n.startswith('nomad-local-'):
+        ip=(v.get('ipv4') or [''])[0]
+        print(f'{n} {ip}')
+")
+
+if [[ ${#vms[@]} -eq 0 ]]; then
+  echo "Nenhuma VM nomad-local-* encontrada"
+  exit 1
+fi
+
+# Cluster-up logs do Mac
+cp /tmp/cluster-up*.log "$OUT/" 2>/dev/null || true
+
+# Por VM: status, journal de cada serviço
+for entry in "${vms[@]}"; do
+  name="${entry%% *}"
+  ip="${entry##* }"
+  vmdir="$OUT/$name"
+  mkdir -p "$vmdir"
+  echo "==> $name ($ip)"
+
+  ssh -i "$KEY" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+    -o ConnectTimeout=5 root@"$ip" '
+    set +e
+    echo "=== uname ==="
+    uname -a
+    echo "=== systemd unit status ==="
+    for u in consul nomad docker fail2ban ufw; do
+      echo "--- $u ---"
+      systemctl is-active "$u" 2>&1 || true
+    done
+    echo "=== consul info ==="
+    /usr/local/bin/consul info 2>&1 | head -30
+    echo "=== nomad agent-info (no token) ==="
+    /usr/local/bin/nomad agent-info 2>&1 | head -20
+    echo "=== docker ps ==="
+    docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Image}}" 2>&1
+    echo "=== ufw status ==="
+    ufw status numbered 2>&1
+    echo "=== mount usage ==="
+    df -h / 2>&1
+    free -m 2>&1
+  ' > "$vmdir/state.txt" 2>&1
+
+  ssh -i "$KEY" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+    -o ConnectTimeout=5 root@"$ip" "journalctl -u consul --no-pager -n 200" \
+    > "$vmdir/consul.log" 2>&1 || true
+
+  ssh -i "$KEY" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+    -o ConnectTimeout=5 root@"$ip" "journalctl -u nomad --no-pager -n 200" \
+    > "$vmdir/nomad.log" 2>&1 || true
+
+  ssh -i "$KEY" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+    -o ConnectTimeout=5 root@"$ip" "journalctl --no-pager -n 200 -p err" \
+    > "$vmdir/system-errors.log" 2>&1 || true
+done
+
+echo
+echo "==> Pronto. Agregar erros: grep -REn 'ERROR|FAIL|Error|fail' $OUT | head -50"
+echo "Diretório: $OUT"

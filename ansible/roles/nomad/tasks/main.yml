@@ -22,16 +22,25 @@
   loop:
     - /etc/nomad.d
     - "{{ nomad_data_dir }}"
+    # Nomad creates <data_dir-sibling>/alloc_mounts at startup — but only if it
+    # has write on the parent. Service runs as user nomad → /var/lib is root-only.
+    # Pre-create the sibling dir with nomad ownership so the agent can use it.
+    # https://developer.hashicorp.com/nomad/docs/configuration/client#alloc_mounts_dir
+    - "{{ nomad_data_dir | dirname }}/alloc_mounts"
+
+- name: Map machine arch to release arch (nomad)
+  ansible.builtin.set_fact:
+    _hashi_arch: "{{ {'x86_64': 'amd64', 'aarch64': 'arm64', 'arm64': 'arm64'}[ansible_architecture] }}"
 
 - name: Download nomad archive
   ansible.builtin.get_url:
-    url: "https://releases.hashicorp.com/nomad/{{ nomad_version }}/nomad_{{ nomad_version }}_linux_amd64.zip"
-    dest: "/tmp/nomad_{{ nomad_version }}_linux_amd64.zip"
+    url: "https://releases.hashicorp.com/nomad/{{ nomad_version }}/nomad_{{ nomad_version }}_linux_{{ _hashi_arch }}.zip"
+    dest: "/tmp/nomad_{{ nomad_version }}_linux_{{ _hashi_arch }}.zip"
     mode: "0644"
 
 - name: Install nomad binary
   ansible.builtin.unarchive:
-    src: "/tmp/nomad_{{ nomad_version }}_linux_amd64.zip"
+    src: "/tmp/nomad_{{ nomad_version }}_linux_{{ _hashi_arch }}.zip"
     dest: /usr/local/bin
     remote_src: true
     owner: root
@@ -87,13 +96,24 @@
     - "'No cluster leader' not in (nomad_acl_bootstrap.stderr | default(''))"
     - "'ACL bootstrap already done' not in (nomad_acl_bootstrap.stderr | default(''))"
 
+- name: Capture Nomad bootstrap token as fact (so later tasks can use it)
+  ansible.builtin.set_fact:
+    nomad_bootstrap_token: "{{ (nomad_acl_bootstrap.stdout | from_json).SecretID }}"
+  run_once: true
+  when:
+    - nomad_acl_bootstrap is defined
+    - nomad_acl_bootstrap is not skipped
+    - nomad_acl_bootstrap.stdout is defined
+    - nomad_acl_bootstrap.stdout | length > 0
+
 - name: Persist Nomad bootstrap token to local secrets file
   ansible.builtin.lineinfile:
-    path: "{{ playbook_dir }}/../inventory/group_vars/secrets.yml"
+    path: "{{ playbook_dir }}/../inventory/group_vars/all/secrets.yml"
     regexp: '^nomad_bootstrap_token:'
-    line: "nomad_bootstrap_token: \"{{ (nomad_acl_bootstrap.stdout | from_json).SecretID }}\""
+    line: "nomad_bootstrap_token: \"{{ nomad_bootstrap_token }}\""
     mode: "0600"
   delegate_to: localhost
+  become: false
   run_once: true
   when:
     - nomad_acl_bootstrap is defined

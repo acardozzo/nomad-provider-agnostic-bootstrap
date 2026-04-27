@@ -23,15 +23,19 @@
     - /etc/consul.d
     - "{{ consul_data_dir }}"
 
+- name: Map machine arch to release arch
+  ansible.builtin.set_fact:
+    _hashi_arch: "{{ {'x86_64': 'amd64', 'aarch64': 'arm64', 'arm64': 'arm64'}[ansible_architecture] }}"
+
 - name: Download consul archive
   ansible.builtin.get_url:
-    url: "https://releases.hashicorp.com/consul/{{ consul_version }}/consul_{{ consul_version }}_linux_amd64.zip"
-    dest: "/tmp/consul_{{ consul_version }}_linux_amd64.zip"
+    url: "https://releases.hashicorp.com/consul/{{ consul_version }}/consul_{{ consul_version }}_linux_{{ _hashi_arch }}.zip"
+    dest: "/tmp/consul_{{ consul_version }}_linux_{{ _hashi_arch }}.zip"
     mode: "0644"
 
 - name: Install consul binary
   ansible.builtin.unarchive:
-    src: "/tmp/consul_{{ consul_version }}_linux_amd64.zip"
+    src: "/tmp/consul_{{ consul_version }}_linux_{{ _hashi_arch }}.zip"
     dest: /usr/local/bin
     remote_src: true
     owner: root
@@ -85,13 +89,24 @@
     - consul_acl_bootstrap.rc != 0
     - "'ACL bootstrap no longer allowed' not in (consul_acl_bootstrap.stderr | default(''))"
 
+- name: Capture Consul bootstrap token as fact
+  ansible.builtin.set_fact:
+    consul_bootstrap_token: "{{ (consul_acl_bootstrap.stdout | from_json).SecretID }}"
+  run_once: true
+  when:
+    - consul_acl_bootstrap is defined
+    - consul_acl_bootstrap is not skipped
+    - consul_acl_bootstrap.stdout is defined
+    - consul_acl_bootstrap.stdout | length > 0
+
 - name: Persist Consul bootstrap token to local secrets file
   ansible.builtin.lineinfile:
-    path: "{{ playbook_dir }}/../inventory/group_vars/secrets.yml"
+    path: "{{ playbook_dir }}/../inventory/group_vars/all/secrets.yml"
     regexp: '^consul_bootstrap_token:'
-    line: "consul_bootstrap_token: \"{{ (consul_acl_bootstrap.stdout | from_json).SecretID }}\""
+    line: "consul_bootstrap_token: \"{{ consul_bootstrap_token }}\""
     mode: "0600"
   delegate_to: localhost
+  become: false
   run_once: true
   when:
     - consul_acl_bootstrap is defined

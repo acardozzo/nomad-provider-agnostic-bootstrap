@@ -2,8 +2,8 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-ALL="$ROOT_DIR/ansible/group_vars/all.yml"
-SECRETS="$ROOT_DIR/ansible/inventory/group_vars/secrets.yml"
+ALL="$ROOT_DIR/ansible/inventory/group_vars/all/defaults.yml"
+SECRETS="$ROOT_DIR/ansible/inventory/group_vars/all/secrets.yml"
 
 read_var() {
   awk -v key="$1:" '$1 == key {sub(/^[^"]*"/, ""); sub(/".*$/, ""); print; exit}' "$2"
