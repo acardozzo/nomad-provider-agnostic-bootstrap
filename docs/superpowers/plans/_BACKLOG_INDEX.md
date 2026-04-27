@@ -29,10 +29,10 @@ impact-per-effort and should usually be executed first.
 | # | Plan | Source | Effort | Status |
 |---|---|---|---|---|
 | 5 | [OpenTofu migration](./_BACKLOG_2026-04-27-opentofu-migration.md) | Research §Topic 3 | ~2h | ✅ written |
-| 6 | _BACKLOG_2026-04-27-firecracker-validation-sprint.md | ADR 0001 gate | ~16h | ⏳ not written |
-| 7 | _BACKLOG_2026-04-27-traefik-scale-to-zero-plugin.md | Research §Topic 1 | ~24h (~300 LOC Go) | ⏳ not written |
-| 8 | _BACKLOG_2026-04-27-progressive-delivery-controller.md | Research §Topic 2 | ~32h (~500 LOC Go) | ⏳ not written |
-| 9 | _BACKLOG_2026-04-27-gitops-atlantis-with-drift-cron.md | Research §Topic 4 (free path) | ~6h | ⏳ not written |
+| 6 | [Firecracker validation sprint](./_BACKLOG_2026-04-27-firecracker-validation-sprint.md) | ADR 0001 gate | ~16h | ✅ written |
+| 7 | [Traefik scale-to-zero plugin](./_BACKLOG_2026-04-27-traefik-scale-to-zero-plugin.md) | Research §Topic 1 | ~24h (~300 LOC Go) | ✅ written |
+| 8 | [Progressive delivery controller](./_BACKLOG_2026-04-27-progressive-delivery-controller.md) | Research §Topic 2 | ~32h (~500 LOC Go) | ✅ written |
+| 9 | [GitOps — Atlantis + drift cron](./_BACKLOG_2026-04-27-gitops-atlantis-with-drift-cron.md) | Research §Topic 4 (free path) | ~6h | ✅ written |
 
 ---
 
@@ -40,11 +40,11 @@ impact-per-effort and should usually be executed first.
 
 | # | Plan | Audit cap. | Effort | Status |
 |---|---|---|---|---|
-| 10 | _BACKLOG_2026-04-27-observability-traces-tempo-otel.md | #13c | ~6h | ⏳ not written |
-| 11 | _BACKLOG_2026-04-27-dns-automation-cloudflare-tf.md | #4 | ~3h | ⏳ not written |
-| 12 | _BACKLOG_2026-04-27-vault-nomad-job-with-consul-template.md | #11 | ~10h | ⏳ not written |
-| 13 | _BACKLOG_2026-04-27-tailscale-admin-overlay.md | #25 | ~3h | ⏳ not written |
-| 14 | _BACKLOG_2026-04-27-trivy-continuous-scanning.md | #26 | ~4h | ⏳ not written |
+| 10 | [Observability — traces (Tempo + OTel)](./_BACKLOG_2026-04-27-observability-traces-tempo-otel.md) | #13c | ~6h | ✅ written |
+| 11 | [DNS automation (Cloudflare TF)](./_BACKLOG_2026-04-27-dns-automation-cloudflare-tf.md) | #4 | ~3h | ✅ written |
+| 12 | [Vault on Nomad + consul-template](./_BACKLOG_2026-04-27-vault-nomad-job-with-consul-template.md) | #11 | ~10h | ✅ written |
+| 13 | [Tailscale admin overlay](./_BACKLOG_2026-04-27-tailscale-admin-overlay.md) | #25 | ~3h | ✅ written |
+| 14 | [Trivy continuous scanning](./_BACKLOG_2026-04-27-trivy-continuous-scanning.md) | #26 | ~4h | ✅ written |
 
 ---
 
@@ -52,12 +52,12 @@ impact-per-effort and should usually be executed first.
 
 | # | Plan | Audit cap. | Effort | Status |
 |---|---|---|---|---|
-| 15 | _BACKLOG_2026-04-27-object-storage-minio-tf-modules.md | #7 | ~6h | ⏳ not written |
-| 16 | _BACKLOG_2026-04-27-block-storage-cloud-attach.md | #8 | ~5h | ⏳ not written |
-| 17 | _BACKLOG_2026-04-27-postgres-patroni-cluster.md | #9 | ~16h | ⏳ not written |
-| 18 | _BACKLOG_2026-04-27-queues-nats-redis-rabbitmq.md | #10 | ~8h | ⏳ not written |
-| 19 | _BACKLOG_2026-04-27-container-registry-self-hosted.md | #14 | ~5h | ⏳ not written |
-| 20 | _BACKLOG_2026-04-27-image-building-kaniko-buildkit.md | #15 | ~8h | ⏳ not written |
+| 15 | [Object storage (MinIO + TF)](./_BACKLOG_2026-04-27-object-storage-minio-tf-modules.md) | #7 | ~6h | ✅ written |
+| 16 | [Block storage cloud attach](./_BACKLOG_2026-04-27-block-storage-cloud-attach.md) | #8 | ~5h | ✅ written |
+| 17 | [Postgres (Patroni HA)](./_BACKLOG_2026-04-27-postgres-patroni-cluster.md) | #9 | ~16h | ✅ written |
+| 18 | [Queues (NATS + Redis + RabbitMQ)](./_BACKLOG_2026-04-27-queues-nats-redis-rabbitmq.md) | #10 | ~8h | ✅ written |
+| 19 | [Container registry (self-hosted)](./_BACKLOG_2026-04-27-container-registry-self-hosted.md) | #14 | ~5h | ✅ written |
+| 20 | [Image building (Kaniko + BuildKit)](./_BACKLOG_2026-04-27-image-building-kaniko-buildkit.md) | #15 | ~8h | ✅ written |
 
 ---
 
@@ -65,11 +65,11 @@ impact-per-effort and should usually be executed first.
 
 | # | Plan | Audit cap. | Effort | Status |
 |---|---|---|---|---|
-| 21 | _BACKLOG_2026-04-27-workload-identity-vault-auth.md | #12 | ~10h | ⏳ not written |
-| 22 | _BACKLOG_2026-04-27-multi-tenancy-nomad-namespaces.md | #21 | ~16h | ⏳ not written |
-| 23 | _BACKLOG_2026-04-27-finops-cost-exporters.md | #18 | ~6h | ⏳ not written |
-| 24 | _BACKLOG_2026-04-27-provider-hetzner-tf-module.md | #1 | ~4h | ⏳ not written |
-| 25 | _BACKLOG_2026-04-27-provider-do-tf-module.md | #1 | ~4h | ⏳ not written |
+| 21 | [Workload Identity (Nomad WI + Vault)](./_BACKLOG_2026-04-27-workload-identity-vault-auth.md) | #12 | ~10h | ✅ written |
+| 22 | [Multi-tenancy (Nomad namespaces)](./_BACKLOG_2026-04-27-multi-tenancy-nomad-namespaces.md) | #21 | ~16h | ✅ written |
+| 23 | [FinOps cost exporters](./_BACKLOG_2026-04-27-finops-cost-exporters.md) | #18 | ~6h | ✅ written |
+| 24 | [Provider — Hetzner](./_BACKLOG_2026-04-27-provider-hetzner-tf-module.md) | #1 | ~4h | ✅ written |
+| 25 | [Provider — DigitalOcean](./_BACKLOG_2026-04-27-provider-do-tf-module.md) | #1 | ~4h | ✅ written |
 
 ---
 
@@ -102,7 +102,8 @@ plans (TDD with smoke tests, bite-sized steps, no placeholders).
 ## Status legend
 
 - ✅ written — plan exists at the linked path, ready to execute
-- ⏳ not written — placeholder; create when scheduled
+
+All 25 plans are written as of 2026-04-27.
 
 The total effort to close everything in Tier 1–5 (excluding out-of-scope
 items) is approximately **220 hours**, or ~6 weeks of full-time engineering
