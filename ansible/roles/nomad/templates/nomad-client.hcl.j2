@@ -10,6 +10,12 @@ client {
     "driver.raw_exec.enable" = "1"
   }
 
+  # Explicit fingerprint values: ARM64 fingerprinter often returns 0 on
+  # Apple Silicon under Multipass; setting these stops the placement
+  # "exhausted" errors. Override with -e on cloud where auto-detect works.
+  cpu_total_compute = {{ nomad_client_cpu_total_compute | default(2400) }}
+  memory_total_mb   = {{ nomad_client_memory_total_mb | default(900) }}
+
   host_volume "traefik_acme" {
     path      = "{{ acme_storage_host_path }}"
     read_only = false

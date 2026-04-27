@@ -7,12 +7,12 @@
     group: nomad
     mode: "0755"
 
-- name: Ensure Prometheus data directory exists on clients
+- name: Ensure Prometheus data directory exists on clients (uid 65534 = nobody)
   ansible.builtin.file:
     path: "{{ prometheus_data_dir }}"
     state: directory
-    owner: root
-    group: root
+    owner: "65534"
+    group: "65534"
     mode: "0755"
   delegate_to: "{{ item }}"
   loop: "{{ groups['clients'] }}"

@@ -4,13 +4,17 @@
     name: nomad
     system: true
 
-- name: Create nomad user
+- name: Create nomad user (secondary group docker for socket access)
   ansible.builtin.user:
     name: nomad
     group: nomad
+    groups:
+      - docker
+    append: true
     shell: /usr/sbin/nologin
     system: true
     create_home: false
+  notify: restart nomad
 
 - name: Create nomad directories
   ansible.builtin.file:

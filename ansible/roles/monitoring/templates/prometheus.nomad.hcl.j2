@@ -90,9 +90,9 @@ EOH
           "--storage.tsdb.retention.time=30d",
           "--web.enable-lifecycle"
         ]
-        volumes = [
-          "local/prometheus.yml:/local/prometheus.yml"
-        ]
+        # Nomad auto-mounts ${NOMAD_TASK_DIR}/local at /local in the container.
+        # No explicit `volumes` needed (and that flag also requires
+        # plugin "docker" { config { volumes { enabled = true } } }).
       }
 
       resources {
