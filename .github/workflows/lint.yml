@@ -17,7 +17,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install ansible-lint and yamllint
-        run: pip install ansible-lint==24.* yamllint==1.* jinja2 PyYAML
+        run: pip install 'ansible-lint>=25,<26' 'yamllint>=1,<2' jinja2 PyYAML
 
       - name: yamllint
         run: yamllint ansible/ .github/
