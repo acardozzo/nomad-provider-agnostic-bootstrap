@@ -6,70 +6,168 @@ in `docs/audits/2026-04-27-orbty-crossplane-vs-nomad-bootstrap-audit.md`
 and the tooling research in
 `docs/research/2026-04-27-modern-tooling-survey.md`.
 
-Plans **already written** are linked. Plans not yet written are listed
-with their target capability number, expected scope, and proposed file
-name. The order reflects ROI ranking — earlier items have the highest
-impact-per-effort and should usually be executed first.
+## Two views
+
+- **Filename tags** (`_BACKLOG_HIGH_*`, `_BACKLOG_ESTRATEGICOS_*`, etc.)
+  reflect *what kind of work* the plan is — severity / domain. They group
+  plans for understanding.
+- **Execution lanes** (A/B/C/D/E below) reflect *how to ship* the plans in
+  parallel — dependencies are kept inside a single lane so lanes never
+  block each other.
+
+The 5 lanes are not the same as the 5 tier groups: they're rebalanced so
+every dep chain stays intra-lane.
 
 ---
 
-## Tier 1 — HIGH severity (audit) + LOW effort
+## Execution: 5 self-contained lanes (zero cross-lane blocking)
 
-| # | Plan | Audit cap. | Effort | Status |
-|---|---|---|---|---|
-| 1 | [Consul Connect (mTLS mesh)](./_BACKLOG_HIGH_2026-04-27-consul-connect-mesh.md) | #17 | ~1h | ✅ written |
-| 2 | [Observability — logs (Loki + Promtail)](./_BACKLOG_HIGH_2026-04-27-observability-logs-loki-promtail.md) | #13b | ~4h | ✅ written |
-| 3 | [Observability — alerts (Alertmanager + baseline rules)](./_BACKLOG_HIGH_2026-04-27-observability-alerts-alertmanager.md) | #13d | ~4h | ✅ written |
-| 4 | [Backup off-site (restic + nomad snapshots)](./_BACKLOG_HIGH_2026-04-27-backup-offsite-restic.md) | #19 | ~3h | ✅ written |
+### Lane A — Observability stack (5 plans, ~32h wallclock)
 
----
+```
+[logs] ──┬─► [traces]      logs must complete first (Loki datasource)
+         └─► [trivy]       logs must complete first (Loki stream sink)
+[alerts]                   independent
+[progressive-delivery]     independent (queries Prometheus only)
+```
 
-## Tier 2 — Tooling decisions / strategic enablers
+| Order | Plan | h |
+|---|---|---|
+| 1 (parallel start) | [observability-logs](./_BACKLOG_HIGH_2026-04-27-observability-logs-loki-promtail.md) | 4 |
+| 1 (parallel start) | [observability-alerts](./_BACKLOG_HIGH_2026-04-27-observability-alerts-alertmanager.md) | 4 |
+| 1 (parallel start) | [progressive-delivery-controller](./_BACKLOG_ESTRATEGICOS_2026-04-27-progressive-delivery-controller.md) | 32 |
+| 2 (after logs) | [observability-traces](./_BACKLOG_MEDIUM_2026-04-27-observability-traces-tempo-otel.md) | 6 |
+| 2 (after logs) | [trivy-continuous-scanning](./_BACKLOG_MEDIUM_2026-04-27-trivy-continuous-scanning.md) | 4 |
 
-| # | Plan | Source | Effort | Status |
-|---|---|---|---|---|
-| 5 | [OpenTofu migration](./_BACKLOG_ESTRATEGICOS_2026-04-27-opentofu-migration.md) | Research §Topic 3 | ~2h | ✅ written |
-| 6 | [Firecracker validation sprint](./_BACKLOG_ESTRATEGICOS_2026-04-27-firecracker-validation-sprint.md) | ADR 0001 gate | ~16h | ✅ written |
-| 7 | [Traefik scale-to-zero plugin](./_BACKLOG_ESTRATEGICOS_2026-04-27-traefik-scale-to-zero-plugin.md) | Research §Topic 1 | ~24h (~300 LOC Go) | ✅ written |
-| 8 | [Progressive delivery controller](./_BACKLOG_ESTRATEGICOS_2026-04-27-progressive-delivery-controller.md) | Research §Topic 2 | ~32h (~500 LOC Go) | ✅ written |
-| 9 | [GitOps — Atlantis + drift cron](./_BACKLOG_ESTRATEGICOS_2026-04-27-gitops-atlantis-with-drift-cron.md) | Research §Topic 4 (free path) | ~6h | ✅ written |
-
----
-
-## Tier 3 — Audit MEDIUM severity / MEDIUM effort
-
-| # | Plan | Audit cap. | Effort | Status |
-|---|---|---|---|---|
-| 10 | [Observability — traces (Tempo + OTel)](./_BACKLOG_MEDIUM_2026-04-27-observability-traces-tempo-otel.md) | #13c | ~6h | ✅ written |
-| 11 | [DNS automation (Cloudflare TF)](./_BACKLOG_MEDIUM_2026-04-27-dns-automation-cloudflare-tf.md) | #4 | ~3h | ✅ written |
-| 12 | [Vault on Nomad + consul-template](./_BACKLOG_MEDIUM_2026-04-27-vault-nomad-job-with-consul-template.md) | #11 | ~10h | ✅ written |
-| 13 | [Tailscale admin overlay](./_BACKLOG_MEDIUM_2026-04-27-tailscale-admin-overlay.md) | #25 | ~3h | ✅ written |
-| 14 | [Trivy continuous scanning](./_BACKLOG_MEDIUM_2026-04-27-trivy-continuous-scanning.md) | #26 | ~4h | ✅ written |
+**Lane A wallclock:** max(4+6, 4+4, 4, 32) = **32h** (dominated by progressive-delivery).
 
 ---
 
-## Tier 4 — Storage & data plane
+### Lane B — Storage + data plane (5 plans, ~19h wallclock)
 
-| # | Plan | Audit cap. | Effort | Status |
-|---|---|---|---|---|
-| 15 | [Object storage (MinIO + TF)](./_BACKLOG_DATA_2026-04-27-object-storage-minio-tf-modules.md) | #7 | ~6h | ✅ written |
-| 16 | [Block storage cloud attach](./_BACKLOG_DATA_2026-04-27-block-storage-cloud-attach.md) | #8 | ~5h | ✅ written |
-| 17 | [Postgres (Patroni HA)](./_BACKLOG_DATA_2026-04-27-postgres-patroni-cluster.md) | #9 | ~16h | ✅ written |
-| 18 | [Queues (NATS + Redis + RabbitMQ)](./_BACKLOG_DATA_2026-04-27-queues-nats-redis-rabbitmq.md) | #10 | ~8h | ✅ written |
-| 19 | [Container registry (self-hosted)](./_BACKLOG_DATA_2026-04-27-container-registry-self-hosted.md) | #14 | ~5h | ✅ written |
-| 20 | [Image building (Kaniko + BuildKit)](./_BACKLOG_DATA_2026-04-27-image-building-kaniko-buildkit.md) | #15 | ~8h | ✅ written |
+```
+[minio] ─► [registry] ─► [image-build]
+[block]                  independent
+[queues]                 independent
+```
+
+| Order | Plan | h |
+|---|---|---|
+| 1 | [object-storage-minio](./_BACKLOG_DATA_2026-04-27-object-storage-minio-tf-modules.md) | 6 |
+| 1 (parallel) | [block-storage-cloud-attach](./_BACKLOG_DATA_2026-04-27-block-storage-cloud-attach.md) | 5 |
+| 1 (parallel) | [queues-nats-redis-rabbitmq](./_BACKLOG_DATA_2026-04-27-queues-nats-redis-rabbitmq.md) | 8 |
+| 2 (after minio) | [container-registry-self-hosted](./_BACKLOG_DATA_2026-04-27-container-registry-self-hosted.md) | 5 |
+| 3 (after registry) | [image-building-kaniko-buildkit](./_BACKLOG_DATA_2026-04-27-image-building-kaniko-buildkit.md) | 8 |
+
+**Lane B wallclock:** 6 + 5 + 8 = **19h** (the chain dominates parallel slots).
 
 ---
 
-## Tier 5 — Identity, multi-tenancy, FinOps, provider breadth
+### Lane C — Identity + Tenancy (5 plans, ~22h wallclock)
 
-| # | Plan | Audit cap. | Effort | Status |
-|---|---|---|---|---|
-| 21 | [Workload Identity (Nomad WI + Vault)](./_BACKLOG_PLATFORM_2026-04-27-workload-identity-vault-auth.md) | #12 | ~10h | ✅ written |
-| 22 | [Multi-tenancy (Nomad namespaces)](./_BACKLOG_PLATFORM_2026-04-27-multi-tenancy-nomad-namespaces.md) | #21 | ~16h | ✅ written |
-| 23 | [FinOps cost exporters](./_BACKLOG_PLATFORM_2026-04-27-finops-cost-exporters.md) | #18 | ~6h | ✅ written |
-| 24 | [Provider — Hetzner](./_BACKLOG_PLATFORM_2026-04-27-provider-hetzner-tf-module.md) | #1 | ~4h | ✅ written |
-| 25 | [Provider — DigitalOcean](./_BACKLOG_PLATFORM_2026-04-27-provider-do-tf-module.md) | #1 | ~4h | ✅ written |
+```
+[vault] ─► [workload-identity]
+[multi-tenancy] ─► [finops]      (soft dep, same lane to keep clean)
+[tailscale]                       independent
+```
+
+| Order | Plan | h |
+|---|---|---|
+| 1 (parallel start) | [vault-nomad-job-with-consul-template](./_BACKLOG_MEDIUM_2026-04-27-vault-nomad-job-with-consul-template.md) | 10 |
+| 1 (parallel start) | [multi-tenancy-nomad-namespaces](./_BACKLOG_PLATFORM_2026-04-27-multi-tenancy-nomad-namespaces.md) | 16 |
+| 1 (parallel start) | [tailscale-admin-overlay](./_BACKLOG_MEDIUM_2026-04-27-tailscale-admin-overlay.md) | 3 |
+| 2 (after vault) | [workload-identity-vault-auth](./_BACKLOG_PLATFORM_2026-04-27-workload-identity-vault-auth.md) | 10 |
+| 2 (after multi-tenancy) | [finops-cost-exporters](./_BACKLOG_PLATFORM_2026-04-27-finops-cost-exporters.md) | 6 |
+
+**Lane C wallclock:** max(10+10, 16+6, 3) = **22h**.
+
+---
+
+### Lane D — IaC + GitOps (5 plans, ~8h wallclock)
+
+```
+[opentofu] ─┬─► [atlantis]
+            ├─► [provider-hetzner]   (weak dep — works on TF too, but kept here)
+            └─► [provider-do]        (weak dep — same)
+[dns]                                 independent TF module
+```
+
+| Order | Plan | h |
+|---|---|---|
+| 1 | [opentofu-migration](./_BACKLOG_ESTRATEGICOS_2026-04-27-opentofu-migration.md) | 2 |
+| 1 (parallel) | [dns-automation-cloudflare-tf](./_BACKLOG_MEDIUM_2026-04-27-dns-automation-cloudflare-tf.md) | 3 |
+| 2 (after tofu) | [gitops-atlantis-with-drift-cron](./_BACKLOG_ESTRATEGICOS_2026-04-27-gitops-atlantis-with-drift-cron.md) | 6 |
+| 2 (after tofu) | [provider-hetzner-tf-module](./_BACKLOG_PLATFORM_2026-04-27-provider-hetzner-tf-module.md) | 4 |
+| 2 (after tofu) | [provider-do-tf-module](./_BACKLOG_PLATFORM_2026-04-27-provider-do-tf-module.md) | 4 |
+
+**Lane D wallclock:** 2 + max(6, 4, 4) = **8h**.
+
+---
+
+### Lane E — Cluster core + strategic Go (5 plans, ~24h wallclock)
+
+```
+[backup] ─► [postgres]              soft dep (DR posture for DB)
+[consul-connect]                    independent
+[firecracker-validation-sprint]     independent
+[traefik-scale-to-zero-plugin]      independent
+```
+
+| Order | Plan | h |
+|---|---|---|
+| 1 (parallel start) | [consul-connect-mesh](./_BACKLOG_HIGH_2026-04-27-consul-connect-mesh.md) | 1 |
+| 1 (parallel start) | [backup-offsite-restic](./_BACKLOG_HIGH_2026-04-27-backup-offsite-restic.md) | 3 |
+| 1 (parallel start) | [firecracker-validation-sprint](./_BACKLOG_ESTRATEGICOS_2026-04-27-firecracker-validation-sprint.md) | 16 |
+| 1 (parallel start) | [traefik-scale-to-zero-plugin](./_BACKLOG_ESTRATEGICOS_2026-04-27-traefik-scale-to-zero-plugin.md) | 24 |
+| 2 (after backup) | [postgres-patroni-cluster](./_BACKLOG_DATA_2026-04-27-postgres-patroni-cluster.md) | 16 |
+
+**Lane E wallclock:** max(1, 3+16, 16, 24) = **24h** (dominated by scale-to-zero).
+
+---
+
+## Wallclock summary
+
+| Lane | Plans | Wallclock |
+|---|---|---|
+| A — Observability | 5 | 32h |
+| B — Storage + Data | 5 | 19h |
+| C — Identity + Tenancy | 5 | 22h |
+| D — IaC + GitOps | 5 | 8h |
+| E — Cluster Core + Strategic | 5 | 24h |
+| **Overall (max of lanes)** | **25** | **32h** |
+
+vs serial 220h → **6.9× speedup with 5 worktrees**.
+
+The bottleneck is Lane A (progressive-delivery-controller alone is 32h
+because it's ~500 LOC of Go with full TDD). If wallclock matters more than
+clean grouping, swap progressive-delivery into Lane B (where Lane B has
+slack: 19h actual). Lane A then drops to max(4+6, 4+4, 4) = 10h, and Lane
+B grows to max(19, 32) = 32h. Same overall, but redistribution is possible.
+
+---
+
+## Worktree topology
+
+```bash
+# One worktree per lane (5 total)
+for lane in A B C D E; do
+  git worktree add -b "lane/$lane" "../wt-lane-$lane"
+done
+```
+
+Inside each lane worktree, dispatch agents per plan in dep order. The
+agent for a Stage-2 plan (e.g. traces in Lane A) waits for the Stage-1
+plan (logs) to merge into `lane/A` first, then rebases.
+
+When all 5 lanes are green:
+```bash
+# Sequential merge into main, in any lane order — they don't conflict
+for lane in D B E C A; do  # shortest first
+  git checkout main
+  git merge --no-ff "lane/$lane"
+  git push
+done
+```
 
 ---
 
@@ -78,33 +176,23 @@ impact-per-effort and should usually be executed first.
 These are documented in ADR 0001 ("Scope — Known Gaps Accepted"):
 
 - **HTTP-driven scale-to-zero** at the abstraction level of KEDA HTTP add-on
-  (warm-replica workaround instead; see plan #7 for partial coverage).
+  (warm-replica workaround instead; Lane E plan covers wake-on-request).
 - **Cloudflare Workers / R2 / D1 / KV / Queues** (capability #20) — not
   portable, integrated as application-layer feature only.
 - **ArgoCD continuous reconciliation for IaC** (capability #16) — replaced
-  by Atlantis (plan #9); revisit if Spacelift becomes affordable.
+  by Atlantis (Lane D); revisit if Spacelift becomes affordable.
 
 ---
 
-## Execution recommendation
+## Severity / theme view (filename tags)
 
-For each tier, execute in order. Within a tier, plans are reasonably
-independent and can run in parallel (different operators on different
-worktrees).
+The filename prefixes group by severity and domain (orthogonal to lanes):
 
-When ready to write a not-yet-written plan, invoke
-`/superpowers:writing-plans` with the specific filename from the table
-above as context. Each plan should follow the same shape as the four Tier-1
-plans (TDD with smoke tests, bite-sized steps, no placeholders).
+- `_BACKLOG_HIGH_*` (4 plans) — audit HIGH severity gaps
+- `_BACKLOG_ESTRATEGICOS_*` (5 plans) — strategic enablers from research
+- `_BACKLOG_MEDIUM_*` (5 plans) — audit MEDIUM severity gaps
+- `_BACKLOG_DATA_*` (6 plans) — storage and data plane
+- `_BACKLOG_PLATFORM_*` (5 plans) — identity, tenancy, finops, providers
 
----
-
-## Status legend
-
-- ✅ written — plan exists at the linked path, ready to execute
-
-All 25 plans are written as of 2026-04-27.
-
-The total effort to close everything in Tier 1–5 (excluding out-of-scope
-items) is approximately **220 hours**, or ~6 weeks of full-time engineering
-for one person.
+Use these tags when scanning by category. Use the lanes above when
+planning execution.
