@@ -16,8 +16,11 @@ acl {
   enable_token_persistence = true
   {% if consul_bootstrap_token %}
   tokens {
-    agent   = "{{ consul_bootstrap_token }}"
-    default = "{{ consul_bootstrap_token }}"
+    # `agent` is used by the local agent for its own operations (anti-entropy,
+    # node registration). `default` would be applied to every unauthenticated
+    # request — leaving it unset makes anonymous calls fall under the
+    # anonymous policy (deny by default), which is what we want.
+    agent = "{{ consul_bootstrap_token }}"
   }
   {% endif %}
 }
