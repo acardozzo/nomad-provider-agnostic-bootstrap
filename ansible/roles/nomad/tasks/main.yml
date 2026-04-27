@@ -14,7 +14,7 @@
     shell: /usr/sbin/nologin
     system: true
     create_home: false
-  notify: restart nomad
+  notify: Restart nomad
 
 - name: Create nomad directories
   ansible.builtin.file:
@@ -58,7 +58,7 @@
     owner: nomad
     group: nomad
     mode: "0640"
-  notify: restart nomad
+  notify: Restart nomad
 
 - name: Render nomad service
   ansible.builtin.template:
@@ -67,7 +67,7 @@
     owner: root
     group: root
     mode: "0644"
-  notify: restart nomad
+  notify: Restart nomad
 
 - name: Enable nomad service
   ansible.builtin.systemd:

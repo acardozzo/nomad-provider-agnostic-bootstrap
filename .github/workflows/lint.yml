@@ -19,10 +19,15 @@ jobs:
       - name: Install ansible-lint and yamllint
         run: pip install 'ansible-lint>=25,<26' 'yamllint>=1,<2' jinja2 PyYAML
 
+      - name: Install required Ansible collections
+        run: ansible-galaxy collection install community.general
+
       - name: yamllint
         run: yamllint ansible/ .github/
 
       - name: ansible-lint
+        env:
+          ANSIBLE_ROLES_PATH: ${{ github.workspace }}/ansible/roles
         run: ansible-lint ansible/
 
       - name: jinja parse

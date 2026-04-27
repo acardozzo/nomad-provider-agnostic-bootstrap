@@ -51,7 +51,7 @@
       maxretry = 4
       bantime = 1h
       findtime = 10m
-  notify: restart fail2ban
+  notify: Restart fail2ban
 
 - name: Harden sshd config
   ansible.builtin.copy:
@@ -69,7 +69,7 @@
       ClientAliveCountMax 2
       MaxAuthTries 4
       LoginGraceTime 30
-  notify: restart sshd
+  notify: Restart sshd
 
 - name: Configure UFW default policies
   community.general.ufw:

@@ -49,7 +49,7 @@
     owner: consul
     group: consul
     mode: "0640"
-  notify: restart consul
+  notify: Restart consul
 
 - name: Render consul service
   ansible.builtin.template:
@@ -58,7 +58,7 @@
     owner: root
     group: root
     mode: "0644"
-  notify: restart consul
+  notify: Restart consul
 
 - name: Enable consul service
   ansible.builtin.systemd:
