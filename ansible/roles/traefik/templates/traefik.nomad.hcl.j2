@@ -76,6 +76,9 @@ job "traefik" {
 
       env {
         CONSUL_HTTP_TOKEN = "{{ consul_bootstrap_token }}"
+{% if acme_enabled and acme_challenge == "dns-cloudflare" %}
+        CF_DNS_API_TOKEN = "{{ cloudflare_dns_api_token }}"
+{% endif %}
       }
 
       config {
@@ -91,8 +94,14 @@ job "traefik" {
 {% if acme_enabled %}
           "--certificatesresolvers.le.acme.email={{ acme_email }}",
           "--certificatesresolvers.le.acme.storage=/etc/traefik/acme/acme.json",
+{% if acme_challenge == "dns-cloudflare" %}
+          "--certificatesresolvers.le.acme.dnschallenge=true",
+          "--certificatesresolvers.le.acme.dnschallenge.provider=cloudflare",
+          "--certificatesresolvers.le.acme.dnschallenge.resolvers=1.1.1.1:53,1.0.0.1:53",
+{% else %}
           "--certificatesresolvers.le.acme.httpchallenge=true",
           "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web",
+{% endif %}
 {% if acme_caserver %}
           "--certificatesresolvers.le.acme.caserver={{ acme_caserver }}",
 {% endif %}

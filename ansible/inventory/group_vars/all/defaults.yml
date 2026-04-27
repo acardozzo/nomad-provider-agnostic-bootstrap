@@ -25,6 +25,9 @@ acme_email: "ops@cluster.local"
 acme_storage_host_path: "/opt/traefik/acme"
 acme_enabled: true                # set false in local/dev mode → Traefik uses self-signed cert
 acme_caserver: ""                 # set to "https://acme-staging-v02.api.letsencrypt.org/directory" for staging
+# ACME challenge: "http" (default, requires :80 reachable from internet) or
+# "dns-cloudflare" (requires cloudflare_dns_api_token in secrets.yml).
+acme_challenge: "http"
 dashboard_basic_auth_user: "admin"
 # Filled by ansible/playbooks/secrets.yml
 dashboard_basic_auth_htpasswd: ""
