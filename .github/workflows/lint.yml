@@ -58,3 +58,6 @@ jobs:
         run: |
           terraform -chdir=terraform init -backend=false
           terraform -chdir=terraform validate
+
+      - name: terraform test (mocked providers)
+        run: terraform -chdir=terraform test
