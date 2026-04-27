@@ -6,17 +6,17 @@ in `docs/audits/2026-04-27-orbty-crossplane-vs-nomad-bootstrap-audit.md`
 and the tooling research in
 `docs/research/2026-04-27-modern-tooling-survey.md`.
 
-## Two views
+## Filename convention
 
-- **Filename tags** (`_BACKLOG_HIGH_*`, `_BACKLOG_ESTRATEGICOS_*`, etc.)
-  reflect *what kind of work* the plan is — severity / domain. They group
-  plans for understanding.
-- **Execution lanes** (A/B/C/D/E below) reflect *how to ship* the plans in
-  parallel — dependencies are kept inside a single lane so lanes never
-  block each other.
+`_BACKLOG_LANE_<X>_2026-04-27-<topic>.md` — every plan's filename declares
+the execution lane it belongs to. The lane (A/B/C/D/E) is the primary
+organizing axis: dependencies are kept intra-lane so the 5 lanes can run
+fully parallel with zero cross-lane blocking.
 
-The 5 lanes are not the same as the 5 tier groups: they're rebalanced so
-every dep chain stays intra-lane.
+Severity / domain (HIGH / ESTRATEGICOS / MEDIUM / DATA / PLATFORM) is
+preserved as metadata in each plan's body and listed in the
+"Severity / theme view" section at the bottom of this doc — it's
+orthogonal to lanes and not part of the filename anymore.
 
 ---
 
@@ -33,11 +33,11 @@ every dep chain stays intra-lane.
 
 | Order | Plan | h |
 |---|---|---|
-| 1 (parallel start) | [observability-logs](./_BACKLOG_HIGH_2026-04-27-observability-logs-loki-promtail.md) | 4 |
-| 1 (parallel start) | [observability-alerts](./_BACKLOG_HIGH_2026-04-27-observability-alerts-alertmanager.md) | 4 |
-| 1 (parallel start) | [progressive-delivery-controller](./_BACKLOG_ESTRATEGICOS_2026-04-27-progressive-delivery-controller.md) | 32 |
-| 2 (after logs) | [observability-traces](./_BACKLOG_MEDIUM_2026-04-27-observability-traces-tempo-otel.md) | 6 |
-| 2 (after logs) | [trivy-continuous-scanning](./_BACKLOG_MEDIUM_2026-04-27-trivy-continuous-scanning.md) | 4 |
+| 1 (parallel start) | [observability-logs](./_BACKLOG_LANE_A_2026-04-27-observability-logs-loki-promtail.md) | 4 |
+| 1 (parallel start) | [observability-alerts](./_BACKLOG_LANE_A_2026-04-27-observability-alerts-alertmanager.md) | 4 |
+| 1 (parallel start) | [progressive-delivery-controller](./_BACKLOG_LANE_A_2026-04-27-progressive-delivery-controller.md) | 32 |
+| 2 (after logs) | [observability-traces](./_BACKLOG_LANE_A_2026-04-27-observability-traces-tempo-otel.md) | 6 |
+| 2 (after logs) | [trivy-continuous-scanning](./_BACKLOG_LANE_A_2026-04-27-trivy-continuous-scanning.md) | 4 |
 
 **Lane A wallclock:** max(4+6, 4+4, 4, 32) = **32h** (dominated by progressive-delivery).
 
@@ -53,11 +53,11 @@ every dep chain stays intra-lane.
 
 | Order | Plan | h |
 |---|---|---|
-| 1 | [object-storage-minio](./_BACKLOG_DATA_2026-04-27-object-storage-minio-tf-modules.md) | 6 |
-| 1 (parallel) | [block-storage-cloud-attach](./_BACKLOG_DATA_2026-04-27-block-storage-cloud-attach.md) | 5 |
-| 1 (parallel) | [queues-nats-redis-rabbitmq](./_BACKLOG_DATA_2026-04-27-queues-nats-redis-rabbitmq.md) | 8 |
-| 2 (after minio) | [container-registry-self-hosted](./_BACKLOG_DATA_2026-04-27-container-registry-self-hosted.md) | 5 |
-| 3 (after registry) | [image-building-kaniko-buildkit](./_BACKLOG_DATA_2026-04-27-image-building-kaniko-buildkit.md) | 8 |
+| 1 | [object-storage-minio](./_BACKLOG_LANE_B_2026-04-27-object-storage-minio-tf-modules.md) | 6 |
+| 1 (parallel) | [block-storage-cloud-attach](./_BACKLOG_LANE_B_2026-04-27-block-storage-cloud-attach.md) | 5 |
+| 1 (parallel) | [queues-nats-redis-rabbitmq](./_BACKLOG_LANE_B_2026-04-27-queues-nats-redis-rabbitmq.md) | 8 |
+| 2 (after minio) | [container-registry-self-hosted](./_BACKLOG_LANE_B_2026-04-27-container-registry-self-hosted.md) | 5 |
+| 3 (after registry) | [image-building-kaniko-buildkit](./_BACKLOG_LANE_B_2026-04-27-image-building-kaniko-buildkit.md) | 8 |
 
 **Lane B wallclock:** 6 + 5 + 8 = **19h** (the chain dominates parallel slots).
 
@@ -73,11 +73,11 @@ every dep chain stays intra-lane.
 
 | Order | Plan | h |
 |---|---|---|
-| 1 (parallel start) | [vault-nomad-job-with-consul-template](./_BACKLOG_MEDIUM_2026-04-27-vault-nomad-job-with-consul-template.md) | 10 |
-| 1 (parallel start) | [multi-tenancy-nomad-namespaces](./_BACKLOG_PLATFORM_2026-04-27-multi-tenancy-nomad-namespaces.md) | 16 |
-| 1 (parallel start) | [tailscale-admin-overlay](./_BACKLOG_MEDIUM_2026-04-27-tailscale-admin-overlay.md) | 3 |
-| 2 (after vault) | [workload-identity-vault-auth](./_BACKLOG_PLATFORM_2026-04-27-workload-identity-vault-auth.md) | 10 |
-| 2 (after multi-tenancy) | [finops-cost-exporters](./_BACKLOG_PLATFORM_2026-04-27-finops-cost-exporters.md) | 6 |
+| 1 (parallel start) | [vault-nomad-job-with-consul-template](./_BACKLOG_LANE_C_2026-04-27-vault-nomad-job-with-consul-template.md) | 10 |
+| 1 (parallel start) | [multi-tenancy-nomad-namespaces](./_BACKLOG_LANE_C_2026-04-27-multi-tenancy-nomad-namespaces.md) | 16 |
+| 1 (parallel start) | [tailscale-admin-overlay](./_BACKLOG_LANE_C_2026-04-27-tailscale-admin-overlay.md) | 3 |
+| 2 (after vault) | [workload-identity-vault-auth](./_BACKLOG_LANE_C_2026-04-27-workload-identity-vault-auth.md) | 10 |
+| 2 (after multi-tenancy) | [finops-cost-exporters](./_BACKLOG_LANE_C_2026-04-27-finops-cost-exporters.md) | 6 |
 
 **Lane C wallclock:** max(10+10, 16+6, 3) = **22h**.
 
@@ -94,11 +94,11 @@ every dep chain stays intra-lane.
 
 | Order | Plan | h |
 |---|---|---|
-| 1 | [opentofu-migration](./_BACKLOG_ESTRATEGICOS_2026-04-27-opentofu-migration.md) | 2 |
-| 1 (parallel) | [dns-automation-cloudflare-tf](./_BACKLOG_MEDIUM_2026-04-27-dns-automation-cloudflare-tf.md) | 3 |
-| 2 (after tofu) | [gitops-atlantis-with-drift-cron](./_BACKLOG_ESTRATEGICOS_2026-04-27-gitops-atlantis-with-drift-cron.md) | 6 |
-| 2 (after tofu) | [provider-hetzner-tf-module](./_BACKLOG_PLATFORM_2026-04-27-provider-hetzner-tf-module.md) | 4 |
-| 2 (after tofu) | [provider-do-tf-module](./_BACKLOG_PLATFORM_2026-04-27-provider-do-tf-module.md) | 4 |
+| 1 | [opentofu-migration](./_BACKLOG_LANE_D_2026-04-27-opentofu-migration.md) | 2 |
+| 1 (parallel) | [dns-automation-cloudflare-tf](./_BACKLOG_LANE_D_2026-04-27-dns-automation-cloudflare-tf.md) | 3 |
+| 2 (after tofu) | [gitops-atlantis-with-drift-cron](./_BACKLOG_LANE_D_2026-04-27-gitops-atlantis-with-drift-cron.md) | 6 |
+| 2 (after tofu) | [provider-hetzner-tf-module](./_BACKLOG_LANE_D_2026-04-27-provider-hetzner-tf-module.md) | 4 |
+| 2 (after tofu) | [provider-do-tf-module](./_BACKLOG_LANE_D_2026-04-27-provider-do-tf-module.md) | 4 |
 
 **Lane D wallclock:** 2 + max(6, 4, 4) = **8h**.
 
@@ -115,11 +115,11 @@ every dep chain stays intra-lane.
 
 | Order | Plan | h |
 |---|---|---|
-| 1 (parallel start) | [consul-connect-mesh](./_BACKLOG_HIGH_2026-04-27-consul-connect-mesh.md) | 1 |
-| 1 (parallel start) | [backup-offsite-restic](./_BACKLOG_HIGH_2026-04-27-backup-offsite-restic.md) | 3 |
-| 1 (parallel start) | [firecracker-validation-sprint](./_BACKLOG_ESTRATEGICOS_2026-04-27-firecracker-validation-sprint.md) | 16 |
-| 1 (parallel start) | [traefik-scale-to-zero-plugin](./_BACKLOG_ESTRATEGICOS_2026-04-27-traefik-scale-to-zero-plugin.md) | 24 |
-| 2 (after backup) | [postgres-patroni-cluster](./_BACKLOG_DATA_2026-04-27-postgres-patroni-cluster.md) | 16 |
+| 1 (parallel start) | [consul-connect-mesh](./_BACKLOG_LANE_E_2026-04-27-consul-connect-mesh.md) | 1 |
+| 1 (parallel start) | [backup-offsite-restic](./_BACKLOG_LANE_E_2026-04-27-backup-offsite-restic.md) | 3 |
+| 1 (parallel start) | [firecracker-validation-sprint](./_BACKLOG_LANE_E_2026-04-27-firecracker-validation-sprint.md) | 16 |
+| 1 (parallel start) | [traefik-scale-to-zero-plugin](./_BACKLOG_LANE_E_2026-04-27-traefik-scale-to-zero-plugin.md) | 24 |
+| 2 (after backup) | [postgres-patroni-cluster](./_BACKLOG_LANE_E_2026-04-27-postgres-patroni-cluster.md) | 16 |
 
 **Lane E wallclock:** max(1, 3+16, 16, 24) = **24h** (dominated by scale-to-zero).
 
@@ -184,15 +184,42 @@ These are documented in ADR 0001 ("Scope — Known Gaps Accepted"):
 
 ---
 
-## Severity / theme view (filename tags)
+## Severity / theme cross-reference
 
-The filename prefixes group by severity and domain (orthogonal to lanes):
+The historic severity / domain grouping (orthogonal to lanes) — useful
+when scanning by category instead of execution order:
 
-- `_BACKLOG_HIGH_*` (4 plans) — audit HIGH severity gaps
-- `_BACKLOG_ESTRATEGICOS_*` (5 plans) — strategic enablers from research
-- `_BACKLOG_MEDIUM_*` (5 plans) — audit MEDIUM severity gaps
-- `_BACKLOG_DATA_*` (6 plans) — storage and data plane
-- `_BACKLOG_PLATFORM_*` (5 plans) — identity, tenancy, finops, providers
+### HIGH severity (audit) — 4 plans
+- consul-connect-mesh (Lane E)
+- observability-logs-loki-promtail (Lane A)
+- observability-alerts-alertmanager (Lane A)
+- backup-offsite-restic (Lane E)
 
-Use these tags when scanning by category. Use the lanes above when
-planning execution.
+### ESTRATEGICOS (research-driven enablers) — 5 plans
+- opentofu-migration (Lane D)
+- firecracker-validation-sprint (Lane E)
+- traefik-scale-to-zero-plugin (Lane E)
+- progressive-delivery-controller (Lane A)
+- gitops-atlantis-with-drift-cron (Lane D)
+
+### MEDIUM severity (audit) — 5 plans
+- observability-traces-tempo-otel (Lane A)
+- dns-automation-cloudflare-tf (Lane D)
+- vault-nomad-job-with-consul-template (Lane C)
+- tailscale-admin-overlay (Lane C)
+- trivy-continuous-scanning (Lane A)
+
+### DATA (storage + data plane) — 6 plans
+- object-storage-minio-tf-modules (Lane B)
+- block-storage-cloud-attach (Lane B)
+- postgres-patroni-cluster (Lane E)
+- queues-nats-redis-rabbitmq (Lane B)
+- container-registry-self-hosted (Lane B)
+- image-building-kaniko-buildkit (Lane B)
+
+### PLATFORM (identity / tenancy / finops / providers) — 5 plans
+- workload-identity-vault-auth (Lane C)
+- multi-tenancy-nomad-namespaces (Lane C)
+- finops-cost-exporters (Lane C)
+- provider-hetzner-tf-module (Lane D)
+- provider-do-tf-module (Lane D)
