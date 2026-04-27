@@ -178,6 +178,38 @@ This decision should be re-evaluated if any of the following occur:
 5. **Team grows past ~15 engineers** and we can afford to operate a custom
    orchestrator (flyd-style).
 
+## Scope — Known Gaps Accepted
+
+The audit (and its 2026-04-27 operator-level addendum) confirms that
+**23 of 26** orbty-platform capabilities port cleanly to Nomad+Firecracker.
+Three are known limitations we accept:
+
+1. **HTTP-driven scale-to-zero** (Knative / KEDA HTTP add-on) — Nomad
+   Autoscaler scales on metrics, not on request arrival. Workaround until
+   it becomes blocking: keep one warm replica per tenant; revisit only if a
+   tenant explicitly demands zero-cost-when-idle pricing.
+2. **Cloudflare Workers / R2 / D1 / KV / Queues** (capability #20) — these
+   are Cloudflare products, not infrastructure portable to any cloud. orbty
+   integrates them at the application layer via API; they are not part of
+   what self-hosted orbty provisions.
+3. **ArgoCD continuous reconciliation** (capability #16) — replaced by
+   Atlantis (PR-driven Terraform). Functionally covers GitOps but with
+   discrete apply rather than continuous reconciliation. If continuous
+   drift correction becomes critical, revisit.
+
+The two capabilities **added by the 2026-04-27 addendum** (Tailscale admin
+overlay #25, continuous security scanning #26) are net-new work for this
+stack and enter the roadmap as MEDIUM-severity items, not blockers for the
+validation sprint.
+
+The two operators **sub-mapped** in the original audit:
+
+- **External Secrets Operator** — covered by `consul-template` sidecar +
+  Vault, not a missing capability
+- **Kyverno admission control** — partial coverage via OPA + CI pre-apply
+  gates; full admission webhook semantics is not portable to Nomad without
+  Enterprise Sentinel
+
 ## References
 
 - Audit: `docs/audits/2026-04-27-orbty-crossplane-vs-nomad-bootstrap-audit.md`
