@@ -30,9 +30,12 @@ EOF
   exit 1
 fi
 
-CPUS="${LOCAL_CPUS:-1}"
-MEM="${LOCAL_MEM:-1G}"
-DISK="${LOCAL_DISK:-5G}"
+# Defaults learned from Layer 3 testing: 1 CPU/1 GB/5 GB → not enough.
+# Prometheus + Grafana + Traefik + node-exporter + whoami exhaust both disk
+# and memory. With 2 CPU / 2 GB / 10 GB everything fits comfortably.
+CPUS="${LOCAL_CPUS:-2}"
+MEM="${LOCAL_MEM:-2G}"
+DISK="${LOCAL_DISK:-10G}"
 IMAGE="${LOCAL_IMAGE:-24.04}"
 PREFIX="${LOCAL_PREFIX:-nomad-local}"
 
